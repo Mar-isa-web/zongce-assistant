@@ -9,11 +9,11 @@
 - **框架**：Next.js（App Router）+ TypeScript
 - **样式**：Tailwind CSS
 - **数据库**：SQLite（规划中）
-- **部署**：Vercel（规划中）
+- **部署**：Netlify ✅ 线上地址：https://vermillion-clafoutis-7cbc93.netlify.app/
 
 ## 开发路线图（MVP 切片）
 
-- [x] 切片 0：脚手架初始化，构建通过，部署上线
+- [x] 切片 0：脚手架初始化，构建通过，[部署上线](https://vermillion-clafoutis-7cbc93.netlify.app/)（2026-10-16）
 - [ ] 切片 1：数据库设计（学生表 / 活动表 / 评分规则表）
 - [ ] 切片 2：录入活动，列表页展示
 - [ ] 切片 3：评分规则配置页（类别、分值可维护）
