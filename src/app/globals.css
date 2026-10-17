@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
+/* 本应用固定浅色主题：不跟随系统深色模式（管理工具浅色可读性更好） */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  color-scheme: light; /* 让下拉框、日期选择器等原生控件也按浅色渲染 */
 }
 
 @theme inline {
@@ -10,13 +12,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
