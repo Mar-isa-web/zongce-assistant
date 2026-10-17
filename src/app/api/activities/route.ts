@@ -17,19 +17,26 @@ export async function GET() {
 }
 
 // POST /api/activities → 录入一条活动
+// 学号：单用户模式，写死当前用户（切片5 做登录后改为从登录状态取）
+// 日期：服务器自动盖"今天"（本地时区），保证落在本学年，用户不填
 // 分值和育别以数据库里的规则为准（不信任前端传值），学号不存在时自动登记空学生
+function localToday() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
-  const studentId = String(body?.studentId ?? "").trim();
+  const studentId = "251543528"; // TODO 切片5：改为从登录会话取当前用户
   const ruleId = Number(body?.ruleId);
   const title = String(body?.title ?? "").trim();
-  const activityDate = String(body?.activityDate ?? "").trim();
+  const activityDate = localToday();
   const evidencePath = String(body?.evidencePath ?? "").trim();
   const remark = String(body?.remark ?? "").trim();
 
-  if (!studentId || !title || !activityDate || !Number.isInteger(ruleId)) {
+  if (!title || !Number.isInteger(ruleId)) {
     return NextResponse.json(
-      { error: "学号、规则、活动名称、日期都是必填项" },
+      { error: "规则和活动名称是必填项" },
       { status: 400 },
     );
   }
