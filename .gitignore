@@ -43,3 +43,6 @@ next-env.d.ts
 # SQLite 数据文件（用 npm run db:init 重建）
 db/*.db
 db/*.db-*
+
+# 个人综测数据（含隐私，不进公开仓库）
+db/import-form.mjs
