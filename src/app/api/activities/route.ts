@@ -1,18 +1,23 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth";
 import type { ActivityRow } from "@/lib/types";
 
-// GET /api/activities → 活动列表（联规则表带出条目展示信息）
-export async function GET() {
+// GET /api/activities → 当前登录用户的活动列表（联规则表带出条目展示信息）
+export async function GET(request: Request) {
+  const user = getSessionUser(request);
+  if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
+
   const rows = db
     .prepare(
       `SELECT a.activity_id, a.student_id, a.title, a.activity_date, a.dimension,
               a.quantity, a.points, a.status, a.evidence_path, a.remark,
               r.item_no, r.category, r.level, r.grade
        FROM activities a LEFT JOIN rules r ON a.rule_id = r.rule_id
+       WHERE a.student_id = ?
        ORDER BY a.activity_id DESC`,
     )
-    .all() as ActivityRow[];
+    .all(user.studentId) as ActivityRow[];
   return NextResponse.json(rows);
 }
 
@@ -26,8 +31,11 @@ function localToday() {
 }
 
 export async function POST(request: Request) {
+  const user = getSessionUser(request);
+  if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
+
   const body = await request.json().catch(() => null);
-  const studentId = "251543528"; // TODO 切片5：改为从登录会话取当前用户
+  const studentId = user.studentId; // 只能给自己录，学号来自会话
   const ruleId = Number(body?.ruleId);
   const title = String(body?.title ?? "").trim();
   const activityDate = localToday();

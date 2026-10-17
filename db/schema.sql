@@ -3,15 +3,25 @@
 --       《计算机学院综合测评评分细则（试行）20260702》
 -- 引擎：SQLite
 
--- 学生表：综测表表头信息
+-- 学生表：综测表表头信息 + 登录凭证
 CREATE TABLE students (
-  student_id  TEXT PRIMARY KEY,              -- 学号，如 251543528
-  name        TEXT NOT NULL,                 -- 姓名
-  class_name  TEXT NOT NULL,                 -- 班级，如 2515435
-  college     TEXT DEFAULT '',               -- 学院，如 计算机学院
-  major       TEXT DEFAULT '',               -- 专业
-  phone       TEXT DEFAULT '',               -- 联系电话
-  created_at  TEXT DEFAULT (datetime('now', 'localtime'))
+  student_id    TEXT PRIMARY KEY,            -- 学号，兼作登录用户名
+  name          TEXT NOT NULL,               -- 姓名
+  class_name    TEXT NOT NULL,               -- 班级，如 2515435
+  college       TEXT DEFAULT '',             -- 学院，如 计算机学院
+  major         TEXT DEFAULT '',             -- 专业
+  phone         TEXT DEFAULT '',             -- 联系电话
+  password_hash TEXT NOT NULL DEFAULT '',    -- scrypt 散列，格式 salt:hash（绝不存明文）
+  role          TEXT NOT NULL DEFAULT 'student', -- student=同学 / admin=班委（可看全班、改规则）
+  created_at    TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+-- 会话表：登录成功后发的令牌，登出即删除
+CREATE TABLE sessions (
+  token      TEXT PRIMARY KEY,
+  student_id TEXT NOT NULL REFERENCES students(student_id),
+  created_at TEXT DEFAULT (datetime('now', 'localtime')),
+  expires_at TEXT NOT NULL
 );
 
 -- 评分规则表：一行 = 细则矩阵的一个格子

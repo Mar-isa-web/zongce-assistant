@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth";
 import type { Rule } from "@/lib/types";
 
 // GET /api/rules → 规则列表（数据量小，全量下发，前端做联动筛选）
@@ -23,8 +24,14 @@ export async function GET(request: Request) {
   return NextResponse.json(rows);
 }
 
-// PATCH /api/rules → 编辑单条规则（分值/常见例子/备注），规则配置页用
+// PATCH /api/rules → 编辑单条规则（分值/常见例子/备注），仅班委（管理员）可用
 export async function PATCH(request: Request) {
+  const user = getSessionUser(request);
+  if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
+  if (user.role !== "admin") {
+    return NextResponse.json({ error: "只有班委（管理员）能修改规则" }, { status: 403 });
+  }
+
   const body = await request.json().catch(() => null);
   const ruleId = Number(body?.ruleId);
   const points = Number(body?.points);

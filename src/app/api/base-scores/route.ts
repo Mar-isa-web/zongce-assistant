@@ -1,25 +1,28 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth";
 
-// 当前用户（切片5 登录后改为从会话取）
-const STUDENT_ID = "251543528";
 const ACADEMIC_YEAR = "2025-2026"; // 学年切换 v2 再做
 
 const DIMENSIONS = ["德育", "智育", "体育", "美育", "劳育"];
 
-// GET /api/base-scores → 当前学生本学年的 5 行基础分（没录过的育不返回，前端补 0）
+// GET /api/base-scores → 当前登录用户本学年的基础分（没录过的育不返回，前端补 0）
 export async function GET(request: Request) {
-  new URL(request.url).searchParams.get("ay"); // 读参数使路由保持动态
+  const user = getSessionUser(request);
+  if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
   const rows = db
     .prepare(
       "SELECT dimension, base_score, peer_score, deduction FROM base_scores WHERE student_id = ? AND academic_year = ?",
     )
-    .all(STUDENT_ID, ACADEMIC_YEAR);
+    .all(user.studentId, ACADEMIC_YEAR);
   return NextResponse.json(rows);
 }
 
 // POST /api/base-scores → 批量保存（复合主键 upsert：重复保存覆盖，不产生重复行）
 export async function POST(request: Request) {
+  const user = getSessionUser(request);
+  if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
+
   const body = await request.json().catch(() => null);
   const rows = body?.rows;
   if (!Array.isArray(rows) || rows.length === 0) {
@@ -46,7 +49,7 @@ export async function POST(request: Request) {
         if (!Number.isFinite(n) || n < 0) throw new Error(`${dimension}的分数必须是≥0的数字`);
         return n;
       };
-      upsert.run(STUDENT_ID, ACADEMIC_YEAR, dimension, num(r.baseScore), num(r.peerScore), num(r.deduction));
+      upsert.run(user.studentId, ACADEMIC_YEAR, dimension, num(r.baseScore), num(r.peerScore), num(r.deduction));
     }
   });
 
