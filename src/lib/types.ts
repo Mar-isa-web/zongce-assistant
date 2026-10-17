@@ -8,6 +8,8 @@ export type Rule = {
   level: string;
   grade: string;
   points: number;
+  unit: string;
+  aliases: string;
   note: string;
 };
 
@@ -18,6 +20,7 @@ export type ActivityRow = {
   title: string;
   activity_date: string;
   dimension: string;
+  quantity: number;
   points: number;
   status: string;
   evidence_path: string;

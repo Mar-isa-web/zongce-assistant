@@ -11,12 +11,12 @@ export async function GET(request: Request) {
     dimension
       ? db
           .prepare(
-            "SELECT rule_id, academic_year, dimension, item_no, category, level, grade, points, note FROM rules WHERE dimension = ? ORDER BY item_no, level, grade",
+            "SELECT rule_id, academic_year, dimension, item_no, category, level, grade, points, unit, aliases, note FROM rules WHERE dimension = ? ORDER BY item_no, level, grade",
           )
           .all(dimension)
       : db
           .prepare(
-            "SELECT rule_id, academic_year, dimension, item_no, category, level, grade, points, note FROM rules ORDER BY dimension, item_no, level, grade",
+            "SELECT rule_id, academic_year, dimension, item_no, category, level, grade, points, unit, aliases, note FROM rules ORDER BY dimension, item_no, level, grade",
           )
           .all()
   ) as Rule[];

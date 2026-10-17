@@ -7,7 +7,7 @@ export async function GET() {
   const rows = db
     .prepare(
       `SELECT a.activity_id, a.student_id, a.title, a.activity_date, a.dimension,
-              a.points, a.status, a.evidence_path, a.remark,
+              a.quantity, a.points, a.status, a.evidence_path, a.remark,
               r.item_no, r.category, r.level, r.grade
        FROM activities a LEFT JOIN rules r ON a.rule_id = r.rule_id
        ORDER BY a.activity_id DESC`,
@@ -19,7 +19,7 @@ export async function GET() {
 // POST /api/activities → 录入一条活动
 // 学号：单用户模式，写死当前用户（切片5 做登录后改为从登录状态取）
 // 日期：服务器自动盖"今天"（本地时区），保证落在本学年，用户不填
-// 分值和育别以数据库里的规则为准（不信任前端传值），学号不存在时自动登记空学生
+// 分值和育别以数据库里的规则为准（不信任前端传值），按量计分规则分值=单价×数量
 function localToday() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -33,6 +33,7 @@ export async function POST(request: Request) {
   const activityDate = localToday();
   const evidencePath = String(body?.evidencePath ?? "").trim();
   const remark = String(body?.remark ?? "").trim();
+  const quantity = body?.quantity === undefined ? 1 : Number(body.quantity);
 
   if (!title || !Number.isInteger(ruleId)) {
     return NextResponse.json(
@@ -40,13 +41,19 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+  if (!Number.isFinite(quantity) || quantity <= 0 || quantity > 999) {
+    return NextResponse.json({ error: "数量必须是 0~999 之间的数" }, { status: 400 });
+  }
 
   const rule = db
-    .prepare("SELECT rule_id, dimension, points FROM rules WHERE rule_id = ?")
-    .get(ruleId) as { rule_id: number; dimension: string; points: number } | undefined;
+    .prepare("SELECT rule_id, dimension, points, unit FROM rules WHERE rule_id = ?")
+    .get(ruleId) as { rule_id: number; dimension: string; points: number; unit: string } | undefined;
   if (!rule) {
     return NextResponse.json({ error: "规则不存在" }, { status: 400 });
   }
+  // 带计量单位的规则必须给数量；不带单位的固定为 1
+  const finalQuantity = rule.unit ? quantity : 1;
+  const points = Math.round(rule.points * finalQuantity * 100) / 100;
 
   db.prepare(
     "INSERT OR IGNORE INTO students (student_id, name, class_name) VALUES (?, '', '')",
@@ -54,10 +61,13 @@ export async function POST(request: Request) {
 
   const result = db
     .prepare(
-      `INSERT INTO activities (student_id, rule_id, title, activity_date, dimension, points, evidence_path, remark)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO activities (student_id, rule_id, title, activity_date, dimension, quantity, points, evidence_path, remark)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
-    .run(studentId, rule.rule_id, title, activityDate, rule.dimension, rule.points, evidencePath, remark);
+    .run(studentId, rule.rule_id, title, activityDate, rule.dimension, finalQuantity, points, evidencePath, remark);
 
-  return NextResponse.json({ ok: true, activity_id: result.lastInsertRowid }, { status: 201 });
+  return NextResponse.json(
+    { ok: true, activity_id: result.lastInsertRowid, points },
+    { status: 201 },
+  );
 }

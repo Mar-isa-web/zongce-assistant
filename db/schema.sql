@@ -26,6 +26,8 @@ CREATE TABLE rules (
   level         TEXT NOT NULL DEFAULT '',    -- 级别：国家级/省级/校级/院级，无级别的存空串
   grade         TEXT NOT NULL DEFAULT '',    -- 等级：一等奖/二等奖/参与/班长/干事等，无等级的存空串
   points        REAL NOT NULL,               -- 分值（志愿活动 0.25/小时 这类小数）
+  unit          TEXT NOT NULL DEFAULT '',    -- 计量单位：篇/次/小时（按量计分的规则才有，分值=points×数量）
+  aliases       TEXT NOT NULL DEFAULT '',    -- 常见例子关键词，逗号分隔，供录入页搜索（如"军训先进个人"）
   note          TEXT DEFAULT '',             -- 备注（累计上限等，如"学年内累计不超过5分"）
   UNIQUE (academic_year, dimension, item_no, category, level, grade)
 );
@@ -38,7 +40,8 @@ CREATE TABLE activities (
   title         TEXT NOT NULL,               -- 名称，如"第十七届蓝桥杯大赛C/C++大学B组广东赛区二等奖"
   activity_date TEXT NOT NULL,               -- 日期 YYYY-MM-DD，录入时校验在本学年内
   dimension     TEXT NOT NULL,               -- 育别（录入时冗余存一份，规则未匹配时也能查）
-  points        REAL NOT NULL,               -- 加分值（从规则带出，允许班委认定时修改）
+  quantity      REAL NOT NULL DEFAULT 1,     -- 数量（按量计分规则用：几小时/几次/几篇），分值=规则分值×数量
+  points        REAL NOT NULL,               -- 加分值（规则分值×数量，允许班委认定时修改）
   evidence_path TEXT DEFAULT '',             -- 证明材料照片的文件路径（红章照片）
   remark        TEXT DEFAULT '',             -- 备注
   status        TEXT NOT NULL DEFAULT '待审核',  -- 待审核/通过/不通过

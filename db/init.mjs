@@ -29,6 +29,7 @@ if (existsSync(dbPath)) {
 const db = new Database(dbPath);
 db.exec(readFileSync(join(here, "schema.sql"), "utf8"));
 db.exec(readFileSync(join(here, "seed_rules.sql"), "utf8"));
+db.exec(readFileSync(join(here, "seed_aliases.sql"), "utf8"));
 
 // 种子学生：作者本人（信息来自他综测表表头），INSERT OR IGNORE 防重复
 db.prepare(
