@@ -27,13 +27,13 @@ type ScoresResponse = {
   };
 };
 
-// 每个育的折算公式展示（和 src/lib/scores.ts 保持一致）
-const FORMULAS: Record<string, { formula: string; cap: number }> = {
-  德育: { formula: "基础×30% + 互评×20% + 加分×50% − 扣分", cap: 20 },
-  智育: { formula: "基础×80% + 加分×20%", cap: 60 },
-  体育: { formula: "基础×70% + 加分×30% − 扣分", cap: 10 },
-  美育: { formula: "基础×50% + 加分×50% − 扣分", cap: 5 },
-  劳育: { formula: "基础×50% + 加分×50% − 扣分", cap: 5 },
+// 每个育的折算公式展示（和 src/lib/scores.ts 保持一致）；原始总分均为百分制
+const FORMULAS: Record<string, string> = {
+  德育: "基础×30% + 互评×20% + 加分×50% − 扣分",
+  智育: "基础×80% + 加分×20%",
+  体育: "基础×70% + 加分×30% − 扣分",
+  美育: "基础×50% + 加分×50% − 扣分",
+  劳育: "基础×50% + 加分×50% − 扣分",
 };
 
 export default function ScorePage() {
@@ -82,9 +82,7 @@ export default function ScorePage() {
             <tr key={d.dimension} className="border-b border-zinc-200">
               <td className="py-2 pr-3">
                 {d.dimension}
-                <div className="text-xs text-zinc-400">
-                  {FORMULAS[d.dimension].formula}，最高 {FORMULAS[d.dimension].cap} 分
-                </div>
+                <div className="text-xs text-zinc-400">{FORMULAS[d.dimension]}（百分制，满分 100）</div>
               </td>
               <td className="py-2 pr-3 text-right">{d.baseScore}</td>
               <td className="py-2 pr-3 text-right">{d.peerScore}</td>
@@ -96,7 +94,10 @@ export default function ScorePage() {
                   <a href="/list" className="hover:text-teal-600 hover:underline">看明细</a>
                 </div>
               </td>
-              <td className="py-2 pr-3 text-right font-medium">{d.raw}</td>
+              <td className="py-2 pr-3 text-right font-medium">
+                {d.raw}
+                {d.capped && <div className="text-xs text-amber-600">超出按100计</div>}
+              </td>
               <td className="py-2 pr-3 text-right font-medium text-teal-700">
                 {d.converted}
                 {d.capped && <div className="text-xs text-amber-600">已封顶</div>}
