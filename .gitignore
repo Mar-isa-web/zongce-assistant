@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# SQLite 数据文件（用 npm run db:init 重建）
+db/*.db
+db/*.db-*
