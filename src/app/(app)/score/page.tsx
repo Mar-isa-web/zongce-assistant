@@ -22,7 +22,7 @@ type ScoresResponse = {
     className: string;
     dims: DimResult[];
     total: number;
-    majorRank: { major: string; rank: number; total: number };
+    majorRank: { college: string; major: string; rank: number; total: number };
   };
 };
 
@@ -59,7 +59,7 @@ export default function ScorePage() {
         {current.majorRank && (
           <>
             {" "}· 专业名次：<strong className="text-teal-700">第 {current.majorRank.rank} 名</strong>
-            <span className="text-zinc-400"> / {current.majorRank.major} 共 {current.majorRank.total} 人</span>
+            <span className="text-zinc-400"> / {current.majorRank.college}·{current.majorRank.major} 共 {current.majorRank.total} 人</span>
           </>
         )}
       </p>

@@ -24,6 +24,7 @@ export type StudentScore = {
   studentId: string;
   name: string;
   className: string;
+  college: string;
   major: string;
   dims: DimResult[];
   total: number;
@@ -37,8 +38,8 @@ export function round2(n: number) {
 // 单个学生的完整算分：基础分来自 base_scores，加分来自 activities（排除"不通过"）
 export function computeForStudent(studentId: string, academicYear: string): Omit<StudentScore, "rank"> {
   const stu = db
-    .prepare("SELECT student_id, name, class_name, major FROM students WHERE student_id = ?")
-    .get(studentId) as { student_id: string; name: string; class_name: string; major: string } | undefined;
+    .prepare("SELECT student_id, name, class_name, college, major FROM students WHERE student_id = ?")
+    .get(studentId) as { student_id: string; name: string; class_name: string; college: string; major: string } | undefined;
 
   const baseRows = db
     .prepare("SELECT dimension, base_score, peer_score, deduction FROM base_scores WHERE student_id = ? AND academic_year = ?")
@@ -78,6 +79,7 @@ export function computeForStudent(studentId: string, academicYear: string): Omit
     studentId,
     name: stu?.name ?? "",
     className: stu?.class_name ?? "",
+    college: stu?.college ?? "",
     major: stu?.major ?? "",
     dims,
     total,
@@ -96,23 +98,26 @@ export function computeRanking(academicYear: string): StudentScore[] {
   return list;
 }
 
-// 专业内排名：排名与同专业（major 相同）的学生比较（智育基础分公式即"本年级本专业"口径）
+// 专业内排名：按"学院+专业"分组（不同学院会有同名专业，只按专业分会混组）
+// 同分并列算靠前名次
 export function computeMajorRank(
   studentId: string,
   academicYear: string,
-): { major: string; rank: number; total: number } {
+): { college: string; major: string; rank: number; total: number } {
   const me = computeForStudent(studentId, academicYear);
-  const majors = db
-    .prepare("SELECT DISTINCT major FROM students WHERE major != ''")
-    .all() as { major: string }[];
-  // 找到该学生所属专业；专业为空时归入"未登记专业"组
-  const mine = majors.some((m) => m.major === me.major) ? me.major : "";
+  const college = me.college || "";
+  const major = me.major || "";
   const peers = db
-    .prepare("SELECT student_id FROM students WHERE major = ?")
-    .all(mine) as { student_id: string }[];
+    .prepare("SELECT student_id FROM students WHERE college = ? AND major = ?")
+    .all(college, major) as { student_id: string }[];
   const totals = peers
     .map((p) => computeForStudent(p.student_id, academicYear).total)
     .sort((a, b) => b - a);
-  const rank = totals.findIndex((t) => t <= me.total) + 1; // 同分并列算靠前名次
-  return { major: mine || "（未登记专业）", rank, total: totals.length };
+  const rank = totals.findIndex((t) => t <= me.total) + 1;
+  return {
+    college: college || "（未登记学院）",
+    major: major || "（未登记专业）",
+    rank,
+    total: totals.length,
+  };
 }

@@ -6,6 +6,7 @@ export default function LoginPage() {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [studentId, setStudentId] = useState("");
   const [name, setName] = useState("");
+  const [college, setCollege] = useState("");
   const [className, setClassName] = useState("");
   const [major, setMajor] = useState("");
   const [password, setPassword] = useState("");
@@ -20,7 +21,7 @@ export default function LoginPage() {
     const payload =
       mode === "login"
         ? { studentId, password }
-        : { studentId, name, className, major, password };
+        : { studentId, name, college, className, major, password };
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -72,12 +73,16 @@ export default function LoginPage() {
               <input className={input} value={name} onChange={(e) => setName(e.target.value)} required />
             </div>
             <div>
+              <span className={label}>学院</span>
+              <input className={input} value={college} onChange={(e) => setCollege(e.target.value)} placeholder="如 计算机学院" required />
+            </div>
+            <div>
               <span className={label}>班级</span>
               <input className={input} value={className} onChange={(e) => setClassName(e.target.value)} placeholder="如 2515435" required />
             </div>
             <div>
               <span className={label}>专业</span>
-              <input className={input} value={major} onChange={(e) => setMajor(e.target.value)} placeholder="如 计算机科学与技术" />
+              <input className={input} value={major} onChange={(e) => setMajor(e.target.value)} placeholder="如 计算机科学与技术" required />
             </div>
           </>
         )}
