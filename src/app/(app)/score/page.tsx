@@ -17,6 +17,7 @@ type DimResult = {
 type ScoresResponse = {
   academicYear: string;
   current: {
+    studentId: string;
     name: string;
     className: string;
     dims: DimResult[];
@@ -54,7 +55,7 @@ export default function ScorePage() {
     <main className="mx-auto max-w-4xl p-8">
       <h1 className="text-3xl font-bold">综测总分</h1>
       <p className="mt-1 text-zinc-500">
-        学年 {data.academicYear} · {current.name}（{current.className}）
+        学年 {data.academicYear} · {current.name}（学号 {current.studentId}）· {current.className} 班
         {current.majorRank && (
           <>
             {" "}· 专业名次：<strong className="text-teal-700">第 {current.majorRank.rank} 名</strong>

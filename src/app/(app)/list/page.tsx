@@ -5,11 +5,19 @@ import Link from "next/link";
 import type { ActivityRow } from "@/lib/types";
 
 const DIMENSIONS = ["德育", "智育", "体育", "美育", "劳育"];
+const STATUSES = ["待审核", "通过", "不通过"];
+
+// 单行编辑的草稿
+type Draft = { title: string; evidencePath: string; remark: string; status: string };
 
 export default function ListPage() {
   const [rows, setRows] = useState<ActivityRow[] | null>(null);
   const [error, setError] = useState("");
   const [dimFilter, setDimFilter] = useState<string>("全部");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     fetch("/api/activities")
@@ -39,6 +47,56 @@ export default function ListPage() {
       .filter((g) => dimFilter !== "全部" || g.count > 0);
   }, [rows, dimFilter]);
 
+  function startEdit(r: ActivityRow) {
+    setEditingId(r.activity_id);
+    setConfirmDeleteId(null);
+    setDraft({ title: r.title, evidencePath: r.evidence_path, remark: r.remark, status: r.status });
+  }
+
+  async function saveEdit(activityId: number) {
+    if (!draft) return;
+    setMessage("");
+    const res = await fetch("/api/activities/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ activityId, ...draft }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      setRows(
+        (prev) =>
+          prev?.map((r) =>
+            r.activity_id === activityId
+              ? { ...r, title: draft.title, evidence_path: draft.evidencePath, remark: draft.remark, status: draft.status }
+              : r,
+          ) ?? prev,
+      );
+      setEditingId(null);
+      setDraft(null);
+    } else {
+      setMessage(`❌ ${data.error ?? "保存失败"}`);
+    }
+  }
+
+  async function doDelete(activityId: number) {
+    setMessage("");
+    const res = await fetch("/api/activities/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ activityId }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      setRows((prev) => prev?.filter((r) => r.activity_id !== activityId) ?? prev);
+      setConfirmDeleteId(null);
+    } else {
+      setMessage(`❌ ${data.error ?? "删除失败"}`);
+    }
+  }
+
+  const input =
+    "w-full rounded border border-zinc-300 px-2 py-1 text-zinc-900 focus:border-teal-500 focus:outline-none";
+
   if (error) return <main className="p-8 text-red-600">{error}</main>;
   if (!rows) return <main className="p-8 text-zinc-500">加载中…</main>;
 
@@ -61,6 +119,8 @@ export default function ListPage() {
           </button>
         ))}
       </div>
+
+      {message && <p className="mt-2 text-sm">{message}</p>}
 
       {rows.length === 0 ? (
         <p className="mt-8 text-zinc-500">
@@ -85,23 +145,63 @@ export default function ListPage() {
                   <th className="py-1.5 pr-3">名称</th>
                   <th className="py-1.5 pr-3">匹配的细则</th>
                   <th className="py-1.5 pr-3 text-right">分值</th>
-                  <th className="py-1.5">状态</th>
+                  <th className="py-1.5 pr-3">状态</th>
+                  <th className="py-1.5 w-32">操作</th>
                 </tr>
               </thead>
               <tbody>
-                {g.list.map((r) => (
-                  <tr
-                    key={r.activity_id}
-                    className={`border-b border-zinc-100 ${r.status === "不通过" ? "text-zinc-400 line-through" : ""}`}
-                  >
-                    <td className="py-1.5 pr-3">{r.title}</td>
-                    <td className="py-1.5 pr-3 text-zinc-500">
-                      {r.item_no !== null ? `${r.item_no}. ${r.category} · ${r.level || "不分级"} · ${r.grade}` : "—"}
-                    </td>
-                    <td className="py-1.5 pr-3 text-right font-medium">{r.points}</td>
-                    <td className="py-1.5">{r.status}</td>
-                  </tr>
-                ))}
+                {g.list.map((r) =>
+                  editingId === r.activity_id ? (
+                    <tr key={r.activity_id} className="border-b border-zinc-100 bg-teal-50/50 align-top">
+                      <td className="py-1.5 pr-3">
+                        <input className={input} value={draft!.title} onChange={(e) => setDraft({ ...draft!, title: e.target.value })} />
+                        <div className="mt-1 grid grid-cols-2 gap-2">
+                          <input className={input} value={draft!.evidencePath} onChange={(e) => setDraft({ ...draft!, evidencePath: e.target.value })} placeholder="证明材料路径" />
+                          <input className={input} value={draft!.remark} onChange={(e) => setDraft({ ...draft!, remark: e.target.value })} placeholder="备注" />
+                        </div>
+                      </td>
+                      <td className="py-1.5 pr-3 text-zinc-500">
+                        {r.item_no !== null ? `${r.item_no}. ${r.category} · ${r.level || "不分级"} · ${r.grade}` : "—"}
+                        <div className="text-xs text-zinc-400">改规则请删除后重录</div>
+                      </td>
+                      <td className="py-1.5 pr-3 text-right font-medium">{r.points}</td>
+                      <td className="py-1.5 pr-3">
+                        <select className={input} value={draft!.status} onChange={(e) => setDraft({ ...draft!, status: e.target.value })}>
+                          {STATUSES.map((s) => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="py-1.5">
+                        <button type="button" onClick={() => saveEdit(r.activity_id)} className="mr-2 text-teal-700 hover:underline">保存</button>
+                        <button type="button" onClick={() => { setEditingId(null); setDraft(null); }} className="text-zinc-500 hover:underline">取消</button>
+                      </td>
+                    </tr>
+                  ) : (
+                    <tr
+                      key={r.activity_id}
+                      className={`border-b border-zinc-100 ${r.status === "不通过" ? "text-zinc-400 line-through" : ""}`}
+                    >
+                      <td className="py-1.5 pr-3">{r.title}</td>
+                      <td className="py-1.5 pr-3 text-zinc-500">
+                        {r.item_no !== null ? `${r.item_no}. ${r.category} · ${r.level || "不分级"} · ${r.grade}` : "—"}
+                      </td>
+                      <td className="py-1.5 pr-3 text-right font-medium">{r.points}</td>
+                      <td className="py-1.5 pr-3">{r.status}</td>
+                      <td className="py-1.5">
+                        <button type="button" onClick={() => startEdit(r)} className="mr-2 text-teal-700 hover:underline">编辑</button>
+                        {confirmDeleteId === r.activity_id ? (
+                          <>
+                            <button type="button" onClick={() => doDelete(r.activity_id)} className="mr-2 text-red-600 hover:underline">确认删除</button>
+                            <button type="button" onClick={() => setConfirmDeleteId(null)} className="text-zinc-500 hover:underline">取消</button>
+                          </>
+                        ) : (
+                          <button type="button" onClick={() => setConfirmDeleteId(r.activity_id)} className="text-zinc-400 hover:text-red-500 hover:underline">删除</button>
+                        )}
+                      </td>
+                    </tr>
+                  ),
+                )}
               </tbody>
             </table>
           </section>

@@ -166,18 +166,15 @@ export default function AddPage() {
   return (
     <main className="mx-auto max-w-2xl p-8">
       <h1 className="text-3xl font-bold">录入活动</h1>
-      <p className="mt-1 text-zinc-500">
-        拿不准是哪条规则？用搜索。带 <span className="text-red-500">*</span> 的才必填
-      </p>
 
-      {/* 搜索：输奖状上的名字，如 军训先进个人 / 蓝桥杯 / 志愿时长 */}
+      {/* 搜索：输奖状上的名字 */}
       <div className="mt-6">
         <span className={label}>搜索规则（输奖状名称关键词）</span>
         <input
           className={input}
           value={searchQ}
           onChange={(e) => setSearchQ(e.target.value)}
-          placeholder="如：军训先进个人、蓝桥杯、志愿时长、四级……留空则用下方下拉"
+          placeholder="输入关键词"
         />
         {searchResults && (
           <div className="mt-2 rounded border border-zinc-200 bg-zinc-50 p-2">
@@ -202,8 +199,9 @@ export default function AddPage() {
         )}
       </div>
 
-      <div className="my-4 flex items-center gap-3 text-xs text-zinc-400">
-        <span className="h-px flex-1 bg-zinc-200" />或者逐级选择<span className="h-px flex-1 bg-zinc-200" />
+      <div className="my-4 flex items-center gap-3">
+        <span className="h-px flex-1 bg-zinc-200" />
+        <span className="h-px flex-1 bg-zinc-200" />
       </div>
 
       <form onSubmit={submit} className="space-y-4">
@@ -264,12 +262,12 @@ export default function AddPage() {
 
         <div>
           <span className={label}>活动名称 <span className="text-red-500">*</span></span>
-          <input className={input} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="如：第十七届蓝桥杯大赛C/C++广东赛区二等奖" required />
+          <input className={input} value={title} onChange={(e) => setTitle(e.target.value)}  required />
         </div>
 
         <div>
           <span className={label}>证明材料路径（可选，可后补）</span>
-          <input className={input} value={evidencePath} onChange={(e) => setEvidencePath(e.target.value)} placeholder="照片文件名或链接" />
+          <input className={input} value={evidencePath} onChange={(e) => setEvidencePath(e.target.value)}  />
         </div>
 
         <div>
