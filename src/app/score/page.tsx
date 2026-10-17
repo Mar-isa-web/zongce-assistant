@@ -16,8 +16,13 @@ type DimResult = {
 
 type ScoresResponse = {
   academicYear: string;
-  current: { name: string; className: string; dims: DimResult[]; total: number; rank: number | null };
-  ranking: { studentId: string; name: string; total: number; rank: number }[];
+  current: {
+    name: string;
+    className: string;
+    dims: DimResult[];
+    total: number;
+    majorRank: { major: string; rank: number; total: number };
+  };
 };
 
 // 每个育的折算公式展示（和 src/lib/scores.ts 保持一致）
@@ -43,17 +48,17 @@ export default function ScorePage() {
   if (error) return <main className="p-8 text-red-600">{error}</main>;
   if (!data) return <main className="p-8 text-zinc-500">计算中…</main>;
 
-  const { current, ranking } = data;
+  const { current } = data;
 
   return (
     <main className="mx-auto max-w-4xl p-8">
       <h1 className="text-3xl font-bold">综测总分</h1>
       <p className="mt-1 text-zinc-500">
         学年 {data.academicYear} · {current.name}（{current.className}）
-        {current.rank !== null && (
+        {current.majorRank && (
           <>
-            {" "}· 综合测评名次：<strong className="text-teal-700">第 {current.rank} 名</strong>
-            <span className="text-zinc-400">（共 {ranking.length} 人参与计算）</span>
+            {" "}· 专业名次：<strong className="text-teal-700">第 {current.majorRank.rank} 名</strong>
+            <span className="text-zinc-400"> / {current.majorRank.major} 共 {current.majorRank.total} 人</span>
           </>
         )}
       </p>
@@ -100,30 +105,6 @@ export default function ScorePage() {
           </tr>
         </tbody>
       </table>
-
-      <div className="mt-8">
-        <h2 className="text-lg font-bold">全体排名</h2>
-        <table className="mt-2 w-full text-left text-sm">
-          <thead className="border-b border-zinc-300 text-zinc-500">
-            <tr>
-              <th className="py-1.5 pr-3">名次</th>
-              <th className="py-1.5 pr-3">学号</th>
-              <th className="py-1.5 pr-3">姓名</th>
-              <th className="py-1.5 text-right">综合总分</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ranking.map((r) => (
-              <tr key={r.studentId} className={`border-b border-zinc-200 ${r.studentId === "251543528" ? "bg-teal-50" : ""}`}>
-                <td className="py-1.5 pr-3">{r.rank}</td>
-                <td className="py-1.5 pr-3">{r.studentId}</td>
-                <td className="py-1.5 pr-3">{r.name || "（未登记姓名）"}</td>
-                <td className="py-1.5 text-right font-medium">{r.total}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
 
       <div className="mt-8 flex gap-4 text-sm">
         <Link href="/add" className="text-teal-700 hover:underline">+ 录入活动</Link>
