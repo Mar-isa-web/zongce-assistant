@@ -22,3 +22,27 @@ export async function GET(request: Request) {
   ) as Rule[];
   return NextResponse.json(rows);
 }
+
+// PATCH /api/rules → 编辑单条规则（分值/常见例子/备注），规则配置页用
+export async function PATCH(request: Request) {
+  const body = await request.json().catch(() => null);
+  const ruleId = Number(body?.ruleId);
+  const points = Number(body?.points);
+  const aliases = String(body?.aliases ?? "").trim();
+  const note = String(body?.note ?? "").trim();
+
+  if (!Number.isInteger(ruleId)) {
+    return NextResponse.json({ error: "缺少规则 id" }, { status: 400 });
+  }
+  if (!Number.isFinite(points) || points < 0) {
+    return NextResponse.json({ error: "分值必须是 ≥0 的数字" }, { status: 400 });
+  }
+
+  const result = db
+    .prepare("UPDATE rules SET points = ?, aliases = ?, note = ? WHERE rule_id = ?")
+    .run(points, aliases, note, ruleId);
+  if (result.changes === 0) {
+    return NextResponse.json({ error: "规则不存在" }, { status: 404 });
+  }
+  return NextResponse.json({ ok: true });
+}

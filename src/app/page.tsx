@@ -7,6 +7,7 @@ export default function Home() {
         <a href="/add" className="rounded bg-teal-600 px-5 py-2 text-white hover:bg-teal-700">录入活动</a>
         <a href="/list" className="rounded border border-zinc-400 px-5 py-2 hover:border-teal-600 hover:text-teal-700">活动列表</a>
         <a href="/base" className="rounded border border-zinc-400 px-5 py-2 hover:border-teal-600 hover:text-teal-700">基础分</a>
+        <a href="/rules" className="rounded border border-zinc-400 px-5 py-2 hover:border-teal-600 hover:text-teal-700">规则配置</a>
       </nav>
     </main>
   );
