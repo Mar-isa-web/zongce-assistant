@@ -122,8 +122,9 @@ export default function ScorePage() {
       </table>
 
       <div className="mt-8 flex gap-4 text-sm">
-        <Link href="/add" className="text-teal-700 hover:underline">+ 录入活动</Link>
-        <Link href="/base" className="text-teal-700 hover:underline">改基础分</Link>
+        <a href="/api/export/excel" className="rounded bg-teal-600 px-4 py-2 font-medium text-white hover:bg-teal-700">导出 Excel</a>
+        <Link href="/add" className="px-2 py-2 text-teal-700 hover:underline">+ 录入活动</Link>
+        <Link href="/base" className="px-2 py-2 text-teal-700 hover:underline">改基础分</Link>
       </div>
     </main>
   );
