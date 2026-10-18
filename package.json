@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",
+    "docxtemplater": "^3.71.1",
     "exceljs": "^4.4.0",
     "next": "16.4.2",
+    "pizzip": "^3.3.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
