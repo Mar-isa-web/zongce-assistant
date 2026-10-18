@@ -98,7 +98,7 @@ export default function ScorePage() {
                 {d.bonus}
                 {d.bonusCount > 0 && <span className="ml-1 text-xs text-zinc-400">（{d.bonusCount}条）</span>}
                 <div className="text-xs text-zinc-400">
-                  <a href="/list" className="hover:text-teal-600 hover:underline">看明细</a>
+                  <a href={`/list?dim=${d.dimension}`} className="hover:text-teal-600 hover:underline">看明细</a>
                 </div>
               </td>
               <td className="py-2 pr-3 text-right font-medium">

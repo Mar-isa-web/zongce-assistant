@@ -26,6 +26,12 @@ export default function ListPage() {
       .catch(() => setError("加载失败，请刷新重试"));
   }, []);
 
+  // 从总分页「看明细」带 ?dim=XX 进入时，直接筛到对应育别
+  useEffect(() => {
+    const dim = new URLSearchParams(window.location.search).get("dim");
+    if (dim && DIMENSIONS.includes(dim)) setDimFilter(dim);
+  }, []);
+
   // 计分口径与总分页一致：状态"不通过"的不计
   const countable = (r: ActivityRow) => r.status !== "不通过";
 
