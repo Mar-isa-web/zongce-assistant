@@ -8,8 +8,8 @@
 
 - **框架**：Next.js（App Router）+ TypeScript
 - **样式**：Tailwind CSS
-- **数据库**：SQLite（规划中）
-- **部署**：Netlify ✅ 线上地址：https://vermillion-clafoutis-7cbc93.netlify.app/
+- **数据库**：SQLite（better-sqlite3，224 条真实细则入库）
+- **部署**：阿里云 ECS（深圳）✅ 线上地址：http://47.112.8.28:3000（IP 直连，免备案）
 
 ## 开发路线图（MVP 切片）
 
