@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "push": "bash scripts/push.sh",
     "db:init": "node db/init.mjs"
   },
   "dependencies": {
