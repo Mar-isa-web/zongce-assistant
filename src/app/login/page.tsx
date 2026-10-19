@@ -80,11 +80,20 @@ export default function LoginPage() {
             </div>
             <div>
               <span className={label}>班级</span>
-              <input className={input} value={className} onChange={(e) => setClassName(e.target.value)} placeholder="如 2515435" required />
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={7}
+                className={input}
+                value={className}
+                onChange={(e) => setClassName(e.target.value.replace(/\D/g, "").slice(0, 7))}
+                placeholder="7 位数字，如 2515435"
+                required
+              />
             </div>
             <div>
               <span className={label}>专业</span>
-              <input className={input} value={major} onChange={(e) => setMajor(e.target.value)} placeholder="如 计算机科学与技术" required />
+              <input className={input} value={major} onChange={(e) => setMajor(e.target.value)} placeholder="全称，如 软件工程" required />
             </div>
             <div>
               <span className={label}>手机号（选填）</span>
