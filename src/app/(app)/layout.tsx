@@ -83,7 +83,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <span className="hidden text-zinc-400 min-[400px]:inline">（{me.student_id}）</span>
             )}
             {me?.role === "admin" && (
-              <span className="ml-1 rounded bg-teal-100 px-1.5 text-xs text-teal-700">管理员</span>
+              <span className="ml-1 hidden rounded bg-teal-100 px-1.5 text-xs text-teal-700 min-[400px]:inline">管理员</span>
             )}
           </span>
           {me?.role === "admin" && (

@@ -91,16 +91,27 @@ export function computeForStudent(studentId: string, academicYear: string): Omit
   };
 }
 
-// 全体学生排名（按综合总分降序；同名次暂不并列，简单序号）——供以后班委视角用
-export function computeRanking(academicYear: string): StudentScore[] {
-  const students = db
-    .prepare("SELECT student_id, major FROM students ORDER BY student_id")
-    .all() as { student_id: string; major: string }[];
-  const list = students
+// 排名（按综合总分降序）：可传班级只看本班，不传就是全库所有人
+// 同分并列取靠前名次（1、2、2、4），与 computeMajorRank 的口径保持一致
+export function computeRanking(academicYear: string, className?: string): StudentScore[] {
+  const rows = (
+    className
+      ? db.prepare("SELECT student_id FROM students WHERE class_name = ? ORDER BY student_id").all(className)
+      : db.prepare("SELECT student_id FROM students ORDER BY student_id").all()
+  ) as { student_id: string }[];
+
+  const sorted = rows
     .map((s) => computeForStudent(s.student_id, academicYear))
-    .sort((a, b) => b.total - a.total)
-    .map((s, i) => ({ ...s, rank: i + 1 }));
-  return list;
+    .sort((a, b) => b.total - a.total);
+
+  let prevTotal: number | null = null;
+  let prevRank = 0;
+  return sorted.map((s, i) => {
+    const rank = prevTotal !== null && Math.abs(s.total - prevTotal) < 0.005 ? prevRank : i + 1;
+    prevTotal = s.total;
+    prevRank = rank;
+    return { ...s, rank };
+  });
 }
 
 // 专业内排名：按"学院+专业"分组（不同学院会有同名专业，只按专业分会混组）

@@ -86,6 +86,13 @@ export default function MembersPage() {
         同学忘记密码时，在这里重置为临时密码。重置后他的所有设备会立即下线，用临时密码登录必须先改密码。
       </p>
 
+      <a
+        href="/ranking"
+        className="mt-3 inline-block rounded border border-teal-600 px-3 py-1.5 text-sm text-teal-700 hover:bg-teal-50"
+      >
+        看全班排名 →
+      </a>
+
       {result && (
         <div className="mt-4 rounded border border-teal-200 bg-teal-50 p-3 text-sm text-teal-900">
           <div className="font-medium">
