@@ -12,6 +12,7 @@ CREATE TABLE students (
   major         TEXT DEFAULT '',             -- 专业
   phone         TEXT DEFAULT '',             -- 联系电话
   password_hash TEXT NOT NULL DEFAULT '',    -- scrypt 散列，格式 salt:hash（绝不存明文）
+  must_change_password INTEGER NOT NULL DEFAULT 0, -- 1=管理员重置过，登录后必须先改密
   role          TEXT NOT NULL DEFAULT 'student', -- student=同学 / admin=班委（可看全班、改规则）
   created_at    TEXT DEFAULT (datetime('now', 'localtime'))
 );

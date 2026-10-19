@@ -6,7 +6,12 @@ import { useEffect, useState } from "react";
 // 登录门卫：本路由组里所有页面都要求先登录，未登录自动跳 /login
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<"loading" | "out" | "in">("loading");
-  const [me, setMe] = useState<{ student_id: string; name: string; role: string } | null>(null);
+  const [me, setMe] = useState<{
+    student_id: string;
+    name: string;
+    role: string;
+    must_change_password?: boolean;
+  } | null>(null);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -22,19 +27,31 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     }
   }
 
+  // 每次切页都重新确认身份：改完密码后 must_change_password 才会归零，避免被旧状态弹回改密页
   useEffect(() => {
+    let alive = true;
     fetch("/api/me")
-      .then((r) => {
+      .then(async (r) => {
+        if (!alive) return;
         setState(r.ok ? "in" : "out");
-        return r.ok ? r.json() : null;
+        if (r.ok) setMe(await r.json());
       })
-      .then((u) => u && setMe(u))
-      .catch(() => setState("out"));
-  }, []);
+      .catch(() => alive && setState("out"));
+    return () => {
+      alive = false;
+    };
+  }, [pathname]);
 
   useEffect(() => {
     if (state === "out") location.href = "/login";
   }, [state]);
+
+  // 临时密码登录：除了改密页哪儿都去不了
+  useEffect(() => {
+    if (state === "in" && me?.must_change_password && pathname !== "/password") {
+      router.push("/password");
+    }
+  }, [state, me, pathname, router]);
 
   if (state !== "in") {
     return (
@@ -63,12 +80,17 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <span className="truncate">
             {me?.name}
             {me?.student_id && (
-              <span className="hidden text-zinc-400 min-[340px]:inline">（{me.student_id}）</span>
+              <span className="hidden text-zinc-400 min-[400px]:inline">（{me.student_id}）</span>
             )}
             {me?.role === "admin" && (
               <span className="ml-1 rounded bg-teal-100 px-1.5 text-xs text-teal-700">管理员</span>
             )}
           </span>
+          {me?.role === "admin" && (
+            <a href="/members" className="whitespace-nowrap text-zinc-400 hover:text-teal-700 hover:underline">
+              成员管理
+            </a>
+          )}
           <a href="/password" className="whitespace-nowrap text-zinc-400 hover:text-teal-700 hover:underline">
             修改密码
           </a>

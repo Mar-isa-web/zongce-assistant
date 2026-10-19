@@ -1,17 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 // 修改密码：旧密码校验 → 设置新密码。放 (app) 路由组内，自动受登录门卫保护
 export default function PasswordPage() {
   const router = useRouter();
+  const [forced, setForced] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+
+  // 判断是不是"临时密码登录"：是的话改密前哪儿都去不了，这里给个说明
+  useEffect(() => {
+    fetch("/api/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((u) => u && setForced(Boolean(u.must_change_password)))
+      .catch(() => {});
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -60,7 +69,13 @@ export default function PasswordPage() {
   return (
     <main className="mx-auto max-w-sm p-8">
       <h1 className="text-2xl font-bold">修改密码</h1>
-      <p className="mt-2 text-sm text-zinc-500">改完后本机会保持登录，其他设备需要重新登录。</p>
+      {forced ? (
+        <p className="mt-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          你现在用的是管理员给的临时密码。请先设置自己的新密码，改完才能继续使用。
+        </p>
+      ) : (
+        <p className="mt-2 text-sm text-zinc-500">改完后本机会保持登录，其他设备需要重新登录。</p>
+      )}
 
       <form onSubmit={submit} className="mt-6 space-y-4">
         <div>
@@ -107,6 +122,15 @@ export default function PasswordPage() {
 
         {error && <p className="text-sm text-red-600">{error}</p>}
         {done && <p className="text-sm text-teal-700">密码已修改，请保管好新密码。</p>}
+        {done && forced && (
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            className="w-full rounded border border-teal-600 py-2 text-sm font-medium text-teal-700 hover:bg-teal-50"
+          >
+            去首页
+          </button>
+        )}
       </form>
     </main>
   );

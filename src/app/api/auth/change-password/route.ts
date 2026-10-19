@@ -31,8 +31,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "旧密码不对" }, { status: 400 });
   }
 
-  // 重新生成随机盐再散列，不复用旧盐
-  db.prepare("UPDATE students SET password_hash = ? WHERE student_id = ?").run(
+  // 重新生成随机盐再散列，不复用旧盐；顺手清掉"必须改密"标记
+  db.prepare("UPDATE students SET password_hash = ?, must_change_password = 0 WHERE student_id = ?").run(
     hashPassword(newPassword),
     user.studentId,
   );
