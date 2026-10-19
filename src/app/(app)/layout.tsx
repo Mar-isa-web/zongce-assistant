@@ -76,7 +76,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             </button>
           )}
         </div>
-        <div className="flex min-w-0 items-center gap-2">
+        {/* 姓名和链接必须同属一个 flex 项，否则 justify-between 会把姓名甩到中间 */}
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-2 gap-y-1 sm:gap-x-3">
           <span className="truncate">
             {me?.name}
             {me?.student_id && <span className="text-zinc-400">（{me.student_id}）</span>}
@@ -84,17 +85,15 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <span className="ml-1 rounded bg-teal-100 px-1.5 text-xs text-teal-700">管理员</span>
             )}
           </span>
-        </div>
-        <div className="flex items-center gap-2 whitespace-nowrap sm:gap-3">
           {me?.role === "admin" && (
-            <a href="/members" className="text-zinc-400 hover:text-teal-700 hover:underline">
+            <a href="/members" className="whitespace-nowrap text-zinc-400 hover:text-teal-700 hover:underline">
               成员管理
             </a>
           )}
-          <a href="/password" className="text-zinc-400 hover:text-teal-700 hover:underline">
+          <a href="/password" className="whitespace-nowrap text-zinc-400 hover:text-teal-700 hover:underline">
             修改密码
           </a>
-          <button type="button" onClick={logout} className="text-zinc-400 hover:text-red-500 hover:underline">
+          <button type="button" onClick={logout} className="whitespace-nowrap text-zinc-400 hover:text-red-500 hover:underline">
             退出登录
           </button>
         </div>
