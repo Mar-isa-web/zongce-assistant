@@ -54,9 +54,9 @@ export default function ScorePage() {
   const { current } = data;
 
   return (
-    <main className="mx-auto max-w-4xl p-8">
-      <h1 className="text-3xl font-bold">综测总分</h1>
-      <p className="mt-1 text-zinc-500">
+    <main className="mx-auto max-w-4xl p-4 sm:p-8">
+      <h1 className="text-2xl font-bold sm:text-3xl">综测总分</h1>
+      <p className="mt-1 text-sm text-zinc-500 sm:text-base">
         学年 {data.academicYear} · {current.name}（学号 {current.studentId}）· {current.className} 班
       </p>
       {current.majorRank && (
@@ -66,7 +66,62 @@ export default function ScorePage() {
         </p>
       )}
 
-      <table className="mt-6 w-full text-left text-sm">
+      {/* 窄屏：一育一张卡片，省掉横向挤压的表格 */}
+      <div className="mt-5 space-y-3 md:hidden">
+        {current.dims.map((d) => {
+          const f = FORMULAS[d.dimension];
+          return (
+            <div key={d.dimension} className="rounded border border-zinc-200 p-3">
+              <div className="flex items-baseline justify-between">
+                <span className="font-medium text-zinc-900">{d.dimension}</span>
+                <span className="text-lg font-bold text-teal-700">{d.converted}</span>
+              </div>
+              <div className="mt-0.5 text-xs text-zinc-400">{f.formula}（百分制，满分 100）</div>
+              <dl className="mt-2 space-y-0.5 text-sm">
+                <div className="flex justify-between">
+                  <dt className="text-zinc-500">基础分</dt>
+                  <dd>{d.baseScore}</dd>
+                </div>
+                {f.peer && (
+                  <div className="flex justify-between">
+                    <dt className="text-zinc-500">互评分</dt>
+                    <dd>{d.peerScore}</dd>
+                  </div>
+                )}
+                {f.deduction && (
+                  <div className="flex justify-between">
+                    <dt className="text-zinc-500">扣分</dt>
+                    <dd>{d.deduction}</dd>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <dt className="text-zinc-500">加分小计</dt>
+                  <dd>{d.bonus}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-zinc-500">原始总分</dt>
+                  <dd className="font-medium">{d.raw}</dd>
+                </div>
+              </dl>
+              <div className="mt-2 flex items-center justify-between text-xs">
+                <a href={`/list?dim=${d.dimension}`} className="text-teal-700 hover:underline">
+                  {d.bonusCount > 0 ? `看明细（${d.bonusCount} 条）` : "看明细"}
+                </a>
+                {d.capped && <span className="text-amber-600">超出按 100 计，已封顶</span>}
+              </div>
+            </div>
+          );
+        })}
+        <div className="rounded bg-teal-50 p-3">
+          <div className="flex items-baseline justify-between">
+            <span className="font-bold">综合测评总分</span>
+            <span className="text-2xl font-bold text-teal-700">{current.total}</span>
+          </div>
+          <div className="mt-1 text-xs text-zinc-500">各育折算分相加（占比 德20% 智60% 体10% 美5% 劳5%）</div>
+        </div>
+      </div>
+
+      <table className="mt-6 hidden w-full text-left text-sm md:table">
         <thead className="border-b-2 border-zinc-300 text-zinc-500">
           <tr>
             <th className="py-2 pr-3">育别</th>
@@ -121,11 +176,11 @@ export default function ScorePage() {
         </tbody>
       </table>
 
-      <div className="mt-8 flex gap-4 text-sm">
-        <a href="/api/export/word" className="rounded bg-teal-600 px-4 py-2 font-medium text-white hover:bg-teal-700">导出综测表（Word，可提交）</a>
-        <a href="/api/export/excel" className="rounded border border-teal-600 px-4 py-2 text-teal-700 hover:bg-teal-50">导出 Excel（核对数据用）</a>
-        <Link href="/add" className="px-2 py-2 text-teal-700 hover:underline">+ 录入活动</Link>
-        <Link href="/base" className="px-2 py-2 text-teal-700 hover:underline">改基础分</Link>
+      <div className="mt-6 flex flex-col gap-2 text-sm sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+        <a href="/api/export/word" className="rounded bg-teal-600 px-4 py-2 text-center font-medium text-white hover:bg-teal-700">导出综测表（Word，可提交）</a>
+        <a href="/api/export/excel" className="rounded border border-teal-600 px-4 py-2 text-center text-teal-700 hover:bg-teal-50">导出 Excel（核对数据用）</a>
+        <Link href="/add" className="px-2 py-2 text-center text-teal-700 hover:underline">+ 录入活动</Link>
+        <Link href="/base" className="px-2 py-2 text-center text-teal-700 hover:underline">改基础分</Link>
       </div>
     </main>
   );

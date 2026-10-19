@@ -107,10 +107,10 @@ export default function ListPage() {
   if (!rows) return <main className="p-8 text-zinc-500">加载中…</main>;
 
   return (
-    <main className="mx-auto max-w-5xl p-8">
+    <main className="mx-auto max-w-5xl p-4 sm:p-8">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-3xl font-bold">活动列表</h1>
-        <Link href="/add" className="text-teal-700 hover:underline">+ 录入一条</Link>
+        <h1 className="text-2xl font-bold sm:text-3xl">活动列表</h1>
+        <Link href="/add" className="text-sm text-teal-700 hover:underline sm:text-base">+ 录入一条</Link>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -145,7 +145,7 @@ export default function ListPage() {
                 <span className="ml-1 text-xs text-zinc-400">（不含不通过）</span>
               </span>
             </div>
-            <table className="mt-2 w-full text-left text-sm">
+            <table className="table-cards mt-2 w-full text-left text-sm">
               <thead className="text-zinc-500">
                 <tr>
                   <th className="py-1.5 pr-3">名称</th>
@@ -159,28 +159,30 @@ export default function ListPage() {
                 {g.list.map((r) =>
                   editingId === r.activity_id ? (
                     <tr key={r.activity_id} className="border-b border-zinc-100 bg-teal-50/50 align-top">
-                      <td className="py-1.5 pr-3">
+                      <td data-label="名称" className="stacked py-1.5 pr-3">
                         <input className={input} value={draft!.title} onChange={(e) => setDraft({ ...draft!, title: e.target.value })} />
                         <div className="mt-1 grid grid-cols-2 gap-2">
                           <input className={input} value={draft!.evidencePath} onChange={(e) => setDraft({ ...draft!, evidencePath: e.target.value })} placeholder="证明材料路径" />
                           <input className={input} value={draft!.remark} onChange={(e) => setDraft({ ...draft!, remark: e.target.value })} placeholder="备注" />
                         </div>
                       </td>
-                      <td className="py-1.5 pr-3 text-zinc-500">
+                      <td data-label="细则" className="py-1.5 pr-3 text-zinc-500">
                         {r.item_no !== null ? `${r.item_no}. ${r.category} · ${r.level || "不分级"} · ${r.grade}` : "—"}
-                        <div className="text-xs text-zinc-400">改规则请删除后重录</div>
+                        <div className="hidden text-xs text-zinc-400 sm:block">改规则请删除后重录</div>
                       </td>
-                      <td className="py-1.5 pr-3 text-right font-medium">{r.points}</td>
-                      <td className="py-1.5 pr-3">
+                      <td data-label="分值" className="py-1.5 pr-3 text-right font-medium">{r.points}</td>
+                      <td data-label="状态" className="stacked py-1.5 pr-3">
                         <select className={input} value={draft!.status} onChange={(e) => setDraft({ ...draft!, status: e.target.value })}>
                           {STATUSES.map((s) => (
                             <option key={s} value={s}>{s}</option>
                           ))}
                         </select>
                       </td>
-                      <td className="py-1.5">
-                        <button type="button" onClick={() => saveEdit(r.activity_id)} className="mr-2 text-teal-700 hover:underline">保存</button>
-                        <button type="button" onClick={() => { setEditingId(null); setDraft(null); }} className="text-zinc-500 hover:underline">取消</button>
+                      <td data-label="操作" className="py-1.5">
+                        <span className="flex items-center gap-3">
+                          <button type="button" onClick={() => saveEdit(r.activity_id)} className="text-teal-700 hover:underline">保存</button>
+                          <button type="button" onClick={() => { setEditingId(null); setDraft(null); }} className="text-zinc-500 hover:underline">取消</button>
+                        </span>
                       </td>
                     </tr>
                   ) : (
@@ -188,22 +190,24 @@ export default function ListPage() {
                       key={r.activity_id}
                       className={`border-b border-zinc-100 ${r.status === "不通过" ? "text-zinc-400 line-through" : ""}`}
                     >
-                      <td className="py-1.5 pr-3">{r.title}</td>
-                      <td className="py-1.5 pr-3 text-zinc-500">
+                      <td data-label="名称" className="py-1.5 pr-3">{r.title}</td>
+                      <td data-label="细则" className="py-1.5 pr-3 text-zinc-500">
                         {r.item_no !== null ? `${r.item_no}. ${r.category} · ${r.level || "不分级"} · ${r.grade}` : "—"}
                       </td>
-                      <td className="py-1.5 pr-3 text-right font-medium">{r.points}</td>
-                      <td className="py-1.5 pr-3">{r.status}</td>
-                      <td className="py-1.5">
-                        <button type="button" onClick={() => startEdit(r)} className="mr-2 text-teal-700 hover:underline">编辑</button>
-                        {confirmDeleteId === r.activity_id ? (
-                          <>
-                            <button type="button" onClick={() => doDelete(r.activity_id)} className="mr-2 text-red-600 hover:underline">确认删除</button>
-                            <button type="button" onClick={() => setConfirmDeleteId(null)} className="text-zinc-500 hover:underline">取消</button>
-                          </>
-                        ) : (
-                          <button type="button" onClick={() => setConfirmDeleteId(r.activity_id)} className="text-zinc-400 hover:text-red-500 hover:underline">删除</button>
-                        )}
+                      <td data-label="分值" className="py-1.5 pr-3 text-right font-medium">{r.points}</td>
+                      <td data-label="状态" className="py-1.5 pr-3">{r.status}</td>
+                      <td data-label="操作" className="py-1.5">
+                        <span className="flex items-center gap-3">
+                          <button type="button" onClick={() => startEdit(r)} className="text-teal-700 hover:underline">编辑</button>
+                          {confirmDeleteId === r.activity_id ? (
+                            <>
+                              <button type="button" onClick={() => doDelete(r.activity_id)} className="text-red-600 hover:underline">确认删除</button>
+                              <button type="button" onClick={() => setConfirmDeleteId(null)} className="text-zinc-500 hover:underline">取消</button>
+                            </>
+                          ) : (
+                            <button type="button" onClick={() => setConfirmDeleteId(r.activity_id)} className="text-zinc-400 hover:text-red-500 hover:underline">删除</button>
+                          )}
+                        </span>
                       </td>
                     </tr>
                   ),

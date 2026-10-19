@@ -132,18 +132,18 @@ export default function BasePage() {
   if (!state) return <main className="p-8 text-zinc-500">加载中…</main>;
 
   return (
-    <main className="mx-auto max-w-3xl p-8">
-      <h1 className="text-3xl font-bold">基础分登记</h1>
-      <p className="mt-1 text-zinc-500">
+    <main className="mx-auto max-w-3xl p-4 sm:p-8">
+      <h1 className="text-2xl font-bold sm:text-3xl">基础分登记</h1>
+      <p className="mt-1 text-sm text-zinc-500 sm:text-base">
         学年 2025-2026 · 这些分不是活动加分，来源见每行说明；加分在<a href="/add" className="text-teal-700 hover:underline">录入活动</a>里
       </p>
 
       <form onSubmit={save} className="mt-6 space-y-4">
         {ROWS.map(({ dimension, baseHint, formula, peer, deduction }) => (
           <div key={dimension} className="rounded border border-zinc-200 p-4">
-            <div className="flex items-baseline justify-between">
-              <span className="font-medium text-zinc-800">{dimension}</span>
-              <span className="text-xs text-zinc-500">{formula}</span>
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="shrink-0 font-medium text-zinc-800">{dimension}</span>
+              <span className="text-right text-xs text-zinc-500">{formula}</span>
             </div>
             <p className="mt-1 text-xs text-zinc-500">来源：{baseHint}</p>
             <div className="mt-2 grid grid-cols-3 gap-3">

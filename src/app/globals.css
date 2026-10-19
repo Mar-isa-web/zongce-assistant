@@ -19,3 +19,52 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* 窄屏（<768px）把密集表格折成卡片：隐藏表头，每格变成「标签 —— 值」一行。
+   用法：给 table 加 class="table-cards"，给每个 td 加 data-label="栏目名"。
+   桌面端的表格结构与样式完全不变。 */
+@media (max-width: 767px) {
+  .table-cards thead {
+    display: none;
+  }
+  .table-cards,
+  .table-cards tbody,
+  .table-cards tr,
+  .table-cards td {
+    display: block;
+    width: 100%;
+  }
+  .table-cards tr {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f4f4f5;
+  }
+  .table-cards td {
+    padding: 0.125rem 0;
+    border: none;
+    text-align: left;
+  }
+  .table-cards td[data-label] {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .table-cards td[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    color: #a1a1aa;
+    font-size: 0.75rem;
+  }
+  .table-cards td[data-label] > * {
+    min-width: 0;
+  }
+  /* 多值单元格（编辑态里的输入框）允许换行堆叠 */
+  .table-cards td[data-label].stacked {
+    display: block;
+  }
+  .table-cards td[data-label].stacked::before {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+}
+

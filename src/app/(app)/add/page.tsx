@@ -164,8 +164,8 @@ export default function AddPage() {
   if (!rules) return <main className="p-8 text-zinc-500">规则加载中…</main>;
 
   return (
-    <main className="mx-auto max-w-2xl p-8">
-      <h1 className="text-3xl font-bold">录入活动</h1>
+    <main className="mx-auto max-w-2xl p-4 sm:p-8">
+      <h1 className="text-2xl font-bold sm:text-3xl">录入活动</h1>
 
       {/* 搜索：输奖状上的名字 */}
       <div className="mt-6">

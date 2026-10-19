@@ -80,9 +80,9 @@ export default function RulesPage() {
   if (!rules) return <main className="p-8 text-zinc-500">规则加载中…</main>;
 
   return (
-    <main className="mx-auto max-w-5xl p-8">
-      <h1 className="text-3xl font-bold">规则配置</h1>
-      <p className="mt-1 text-zinc-500">
+    <main className="mx-auto max-w-5xl p-4 sm:p-8">
+      <h1 className="text-2xl font-bold sm:text-3xl">规则配置</h1>
+      <p className="mt-1 text-sm text-zinc-500 sm:text-base">
         学校改细则时在这里改分值；"常见例子"是录入页搜索用的关键词。改完点保存立即生效。
       </p>
 
@@ -98,7 +98,7 @@ export default function RulesPage() {
           </button>
         ))}
         <input
-          className="ml-auto w-64 rounded border border-zinc-300 px-3 py-1.5 text-sm text-zinc-900 focus:border-teal-500 focus:outline-none"
+          className="w-full rounded border border-zinc-300 px-3 py-1.5 text-sm text-zinc-900 focus:border-teal-500 focus:outline-none sm:ml-auto sm:w-64"
           value={searchQ}
           onChange={(e) => setSearchQ(e.target.value)}
           placeholder="筛这个页面里的规则……"
@@ -108,7 +108,7 @@ export default function RulesPage() {
 
       {message && <p className="mt-2 text-sm">{message}</p>}
 
-      <table className="mt-3 w-full text-left text-sm">
+      <table className="table-cards mt-3 w-full text-left text-sm">
         <thead className="border-b-2 border-zinc-300 text-zinc-500">
           <tr>
             <th className="py-2 pr-3">规则</th>
@@ -122,35 +122,37 @@ export default function RulesPage() {
           {visible.map((r) =>
             editingId === r.rule_id ? (
               <tr key={r.rule_id} className="border-b border-zinc-200 bg-teal-50/50">
-                <td className="py-2 pr-3 text-zinc-500">
+                <td data-label="规则" className="py-2 pr-3 text-zinc-500">
                   {r.dimension} · {r.item_no}. {r.category} · {r.level || "不分级"} · {r.grade}
                 </td>
-                <td className="py-2 pr-3">
+                <td data-label="分值" className="stacked py-2 pr-3">
                   <input type="number" min="0" step="0.25" className={`${input} w-20`} value={draft!.points} onChange={(e) => setDraft({ ...draft!, points: e.target.value })} />
                 </td>
-                <td className="py-2 pr-3">
+                <td data-label="常见例子" className="stacked py-2 pr-3">
                   <input className={input} value={draft!.aliases} onChange={(e) => setDraft({ ...draft!, aliases: e.target.value })} />
                 </td>
-                <td className="py-2 pr-3">
+                <td data-label="备注" className="stacked py-2 pr-3">
                   <input className={input} value={draft!.note} onChange={(e) => setDraft({ ...draft!, note: e.target.value })} />
                 </td>
-                <td className="py-2">
-                  <button type="button" disabled={saving} onClick={() => saveEdit(r.rule_id)} className="mr-2 text-teal-700 hover:underline disabled:opacity-50">
-                    {saving ? "保存中…" : "保存"}
-                  </button>
-                  <button type="button" onClick={cancelEdit} className="text-zinc-500 hover:underline">取消</button>
+                <td data-label="操作" className="py-2">
+                  <span className="flex items-center gap-3">
+                    <button type="button" disabled={saving} onClick={() => saveEdit(r.rule_id)} className="text-teal-700 hover:underline disabled:opacity-50">
+                      {saving ? "保存中…" : "保存"}
+                    </button>
+                    <button type="button" onClick={cancelEdit} className="text-zinc-500 hover:underline">取消</button>
+                  </span>
                 </td>
               </tr>
             ) : (
               <tr key={r.rule_id} className="border-b border-zinc-200">
-                <td className="py-2 pr-3">
+                <td data-label="规则" className="py-2 pr-3">
                   {r.dimension} · {r.item_no}. {r.category} · {r.level || "不分级"} · {r.grade}
                   {r.unit && <span className="ml-1 text-xs text-zinc-400">（按{r.unit}计）</span>}
                 </td>
-                <td className="py-2 pr-3 font-medium">{r.points}</td>
-                <td className="py-2 pr-3 text-zinc-500">{r.aliases || "—"}</td>
-                <td className="py-2 pr-3 text-zinc-500">{r.note || "—"}</td>
-                <td className="py-2">
+                <td data-label="分值" className="py-2 pr-3 font-medium">{r.points}</td>
+                <td data-label="例子" className="py-2 pr-3 text-zinc-500">{r.aliases || "—"}</td>
+                <td data-label="备注" className="py-2 pr-3 text-zinc-500">{r.note || "—"}</td>
+                <td data-label="操作" className="py-2">
                   <button type="button" onClick={() => startEdit(r)} className="text-teal-700 hover:underline">编辑</button>
                 </td>
               </tr>
