@@ -51,23 +51,28 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <div className="min-h-screen">
-      <header className="flex items-center justify-between gap-3 border-b border-zinc-200 px-6 py-2 text-sm text-zinc-600">
+      <header className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b border-zinc-200 px-4 py-2 text-sm text-zinc-600 sm:gap-x-3 sm:px-6">
         <div>
           {pathname !== "/" && (
-            <button type="button" onClick={goBack} className="text-teal-700 hover:underline">
+            <button type="button" onClick={goBack} className="whitespace-nowrap text-teal-700 hover:underline">
               ← 返回
             </button>
           )}
         </div>
-        <div className="flex items-center gap-3">
-          <span>
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <span className="truncate">
             {me?.name}
-            {me?.student_id && <span className="text-zinc-400">（{me.student_id}）</span>}
+            {me?.student_id && (
+              <span className="hidden text-zinc-400 min-[340px]:inline">（{me.student_id}）</span>
+            )}
             {me?.role === "admin" && (
               <span className="ml-1 rounded bg-teal-100 px-1.5 text-xs text-teal-700">管理员</span>
             )}
           </span>
-          <button type="button" onClick={logout} className="text-zinc-400 hover:text-red-500 hover:underline">
+          <a href="/password" className="whitespace-nowrap text-zinc-400 hover:text-teal-700 hover:underline">
+            修改密码
+          </a>
+          <button type="button" onClick={logout} className="whitespace-nowrap text-zinc-400 hover:text-red-500 hover:underline">
             退出登录
           </button>
         </div>

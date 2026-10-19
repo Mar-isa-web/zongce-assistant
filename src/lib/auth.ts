@@ -36,14 +36,21 @@ export function destroySession(token: string) {
   db.prepare("DELETE FROM sessions WHERE token = ?").run(token);
 }
 
+// 从请求 Cookie 里读出会话令牌；没有则返回 null
+export function getSessionToken(request: Request): string | null {
+  const cookieHeader = request.headers.get("cookie") ?? "";
+  return (
+    cookieHeader
+      .split(";")
+      .map((s) => s.trim())
+      .find((s) => s.startsWith(`${SESSION_COOKIE}=`))
+      ?.slice(SESSION_COOKIE.length + 1) ?? null
+  );
+}
+
 // 从请求 Cookie 里解析当前登录用户；未登录返回 null
 export function getSessionUser(request: Request): { studentId: string; role: string } | null {
-  const cookieHeader = request.headers.get("cookie") ?? "";
-  const token = cookieHeader
-    .split(";")
-    .map((s) => s.trim())
-    .find((s) => s.startsWith(`${SESSION_COOKIE}=`))
-    ?.slice(SESSION_COOKIE.length + 1);
+  const token = getSessionToken(request);
   if (!token) return null;
 
   const row = db
