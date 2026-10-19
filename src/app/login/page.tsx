@@ -9,9 +9,11 @@ export default function LoginPage() {
   const [college, setCollege] = useState("");
   const [className, setClassName] = useState("");
   const [major, setMajor] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [showForgot, setShowForgot] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -21,7 +23,7 @@ export default function LoginPage() {
     const payload =
       mode === "login"
         ? { studentId, password }
-        : { studentId, name, college, className, major, password };
+        : { studentId, name, college, className, major, phone, password };
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -84,12 +86,43 @@ export default function LoginPage() {
               <span className={label}>专业</span>
               <input className={input} value={major} onChange={(e) => setMajor(e.target.value)} placeholder="如 计算机科学与技术" required />
             </div>
+            <div>
+              <span className={label}>手机号（选填）</span>
+              <input
+                type="tel"
+                inputMode="numeric"
+                maxLength={11}
+                className={input}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                placeholder="用于忘记密码时核验身份"
+              />
+            </div>
           </>
         )}
         <div>
-          <span className={label}>密码{mode === "register" && "（至少 6 位）"}</span>
+          <div className="mb-1 flex items-center justify-between">
+            <span className="text-sm font-medium text-zinc-800">
+              密码{mode === "register" && "（至少 6 位）"}
+            </span>
+            {mode === "login" && (
+              <button
+                type="button"
+                onClick={() => setShowForgot((v) => !v)}
+                className="text-xs text-teal-700 hover:underline"
+              >
+                忘记密码？
+              </button>
+            )}
+          </div>
           <input type="password" className={input} value={password} onChange={(e) => setPassword(e.target.value)} required />
         </div>
+
+        {mode === "login" && showForgot && (
+          <p className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">
+            忘记密码需要重置：请联系本班班委或管理员。注册时填了手机号的，管理员会核对手机号后 4 位来确认你的身份。
+          </p>
+        )}
 
         <button type="submit" disabled={busy} className="w-full rounded bg-teal-600 py-2 font-medium text-white hover:bg-teal-700 disabled:opacity-50">
           {busy ? "请稍候…" : mode === "login" ? "登录" : "注册并进入"}
