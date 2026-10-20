@@ -81,3 +81,7 @@ npm run dev
 
 - [PROJECT-HANDOFF.md](PROJECT-HANDOFF.md)：接手前必读——技术栈、已知大坑、验收文化
 - [DEPLOY.md](DEPLOY.md)：阿里云部署完整步骤
+
+## 许可
+
+[MIT](LICENSE) © 2026 江圳宇
