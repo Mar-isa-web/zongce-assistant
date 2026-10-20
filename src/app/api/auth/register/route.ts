@@ -16,8 +16,8 @@ export async function POST(request: Request) {
   const phone = String(body?.phone ?? "").trim();
   const password = String(body?.password ?? "");
 
-  if (!/^\d{6,12}$/.test(studentId)) {
-    return NextResponse.json({ error: "学号应是 6~12 位数字" }, { status: 400 });
+  if (!/^\d{9}$/.test(studentId)) {
+    return NextResponse.json({ error: "学号应是 9 位数字，如 251543528" }, { status: 400 });
   }
   if (!name || !college || !className) {
     return NextResponse.json({ error: "姓名、学院、班级必填" }, { status: 400 });

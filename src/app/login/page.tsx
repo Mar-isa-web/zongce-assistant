@@ -66,7 +66,20 @@ export default function LoginPage() {
       <form onSubmit={submit} className="mt-5 space-y-4">
         <div>
           <span className={label}>学号</span>
-          <input className={input} value={studentId} onChange={(e) => setStudentId(e.target.value)} required />
+          <input
+            className={input}
+            value={studentId}
+            onChange={(e) =>
+              setStudentId(mode === "register" ? e.target.value.replace(/\D/g, "").slice(0, 9) : e.target.value)
+            }
+            inputMode={mode === "register" ? "numeric" : "text"}
+            maxLength={mode === "register" ? 9 : undefined}
+            placeholder={mode === "register" ? "9 位数字，如 251543528" : ""}
+            required
+          />
+          {mode === "register" && (
+            <p className="mt-1 text-xs text-zinc-400">只用来区分同学和导出综测表，不会公开</p>
+          )}
         </div>
         {mode === "register" && (
           <>
