@@ -3,7 +3,11 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-// 登录门卫：本路由组里所有页面都要求先登录，未登录自动跳 /login
+// 这些页面不登录也能用（本地试算，数据只存在浏览器里）
+const PUBLIC_PATHS = ["/", "/score", "/add", "/base"];
+
+// 登录门卫：需要账号的页面（列表/规则/成员/排名/改密）未登录一律跳 /login；
+// 试算页允许免登录进入，走本地 localStorage
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<"loading" | "out" | "in">("loading");
   const [me, setMe] = useState<{
@@ -14,6 +18,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   } | null>(null);
   const pathname = usePathname();
   const router = useRouter();
+  const isPublic = PUBLIC_PATHS.includes(pathname);
 
   // 返回站内上一页（如 总分→看明细 的二级层级）；直接打开本页时没有站内来路，回首页
   function goBack() {
@@ -43,8 +48,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   }, [pathname]);
 
   useEffect(() => {
-    if (state === "out") location.href = "/login";
-  }, [state]);
+    if (state === "out" && !isPublic) location.href = "/login";
+  }, [state, isPublic]);
 
   // 临时密码登录：除了改密页哪儿都去不了
   useEffect(() => {
@@ -53,7 +58,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     }
   }, [state, me, pathname, router]);
 
-  if (state !== "in") {
+  // 需要登录的页面在确认身份期间先不渲染内容
+  if (state === "loading" || (state === "out" && !isPublic)) {
     return (
       <main className="flex min-h-screen items-center justify-center text-zinc-500">
         {state === "loading" ? "身份确认中…" : "未登录，正在跳转登录页…"}
@@ -65,6 +71,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     await fetch("/api/auth/logout", { method: "POST" });
     location.href = "/login";
   }
+
+  const localMode = state === "out";
 
   return (
     <div className="min-h-screen">
@@ -78,24 +86,40 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
         {/* 姓名和链接必须同属一个 flex 项，否则 justify-between 会把姓名甩到中间 */}
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-2 gap-y-1 sm:gap-x-3">
-          <span className="truncate">
-            {me?.name}
-            {me?.student_id && <span className="text-zinc-400">（{me.student_id}）</span>}
-            {me?.role === "admin" && (
-              <span className="ml-1 rounded bg-teal-100 px-1.5 text-xs text-teal-700">管理员</span>
-            )}
-          </span>
-          {me?.role === "admin" && (
-            <a href="/members" className="whitespace-nowrap text-zinc-400 hover:text-teal-700 hover:underline">
-              成员管理
-            </a>
+          {localMode ? (
+            <>
+              <span className="rounded bg-amber-100 px-1.5 text-xs text-amber-800">本地试算</span>
+              <span className="hidden text-xs text-zinc-400 sm:inline">数据只存在这台设备</span>
+              <a href="/login" className="whitespace-nowrap text-teal-700 hover:underline">
+                登录 / 注册
+              </a>
+            </>
+          ) : (
+            <>
+              <span className="truncate">
+                {me?.name}
+                {me?.student_id && <span className="text-zinc-400">（{me.student_id}）</span>}
+                {me?.role === "admin" && (
+                  <span className="ml-1 rounded bg-teal-100 px-1.5 text-xs text-teal-700">管理员</span>
+                )}
+              </span>
+              {me?.role === "admin" && (
+                <a href="/members" className="whitespace-nowrap text-zinc-400 hover:text-teal-700 hover:underline">
+                  成员管理
+                </a>
+              )}
+              <a href="/password" className="whitespace-nowrap text-zinc-400 hover:text-teal-700 hover:underline">
+                修改密码
+              </a>
+              <button
+                type="button"
+                onClick={logout}
+                className="whitespace-nowrap text-zinc-400 hover:text-red-500 hover:underline"
+              >
+                退出登录
+              </button>
+            </>
           )}
-          <a href="/password" className="whitespace-nowrap text-zinc-400 hover:text-teal-700 hover:underline">
-            修改密码
-          </a>
-          <button type="button" onClick={logout} className="whitespace-nowrap text-zinc-400 hover:text-red-500 hover:underline">
-            退出登录
-          </button>
         </div>
       </header>
       {children}

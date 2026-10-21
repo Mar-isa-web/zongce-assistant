@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { getScore, getMode } from "@/lib/data";
 
 type DimResult = {
   dimension: string;
@@ -23,7 +24,7 @@ type ScoresResponse = {
     className: string;
     dims: DimResult[];
     total: number;
-    majorRank: { college: string; major: string; rank: number; total: number };
+    majorRank?: { college: string; major: string; rank: number; total: number } | null;
   };
 };
 
@@ -40,12 +41,20 @@ const FORMULAS: Record<string, { formula: string; peer: boolean; deduction: bool
 export default function ScorePage() {
   const [data, setData] = useState<ScoresResponse | null>(null);
   const [error, setError] = useState("");
+  const [localMode, setLocalMode] = useState(false);
 
   useEffect(() => {
-    fetch("/api/scores")
-      .then((r) => r.json())
-      .then(setData)
-      .catch(() => setError("加载失败，请刷新重试"));
+    let alive = true;
+    Promise.all([getScore(), getMode()])
+      .then(([d, mode]) => {
+        if (!alive) return;
+        setData(d);
+        setLocalMode(mode === "local");
+      })
+      .catch(() => alive && setError("加载失败，请刷新重试"));
+    return () => {
+      alive = false;
+    };
   }, []);
 
   if (error) return <main className="p-8 text-red-600">{error}</main>;
@@ -56,9 +65,16 @@ export default function ScorePage() {
   return (
     <main className="mx-auto max-w-4xl p-4 sm:p-8">
       <h1 className="text-2xl font-bold sm:text-3xl">综测总分</h1>
-      <p className="mt-1 text-sm text-zinc-500 sm:text-base">
-        学年 {data.academicYear} · {current.name}（学号 {current.studentId}）· {current.className} 班
-      </p>
+      {localMode ? (
+        <p className="mt-2 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          当前是<b>本地试算</b>：数据只存在这台设备的浏览器里，不会上传。
+          想保存到账号、换手机继续用，<Link href="/login" className="underline">登录 / 注册</Link>即可。
+        </p>
+      ) : (
+        <p className="mt-1 text-sm text-zinc-500 sm:text-base">
+          学年 {data.academicYear} · {current.name}（学号 {current.studentId}）· {current.className} 班
+        </p>
+      )}
       {current.majorRank && (
         <p className="mt-0.5 text-sm text-zinc-500">
           专业名次：<strong className="text-teal-700">第 {current.majorRank.rank} 名</strong>

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { Rule } from "@/lib/types";
+import { addActivity, listRules } from "@/lib/data";
 
 const DIMENSIONS = ["德育", "智育", "体育", "美育", "劳育"];
 // 级别下拉的展示顺序：校级最高频放前面（默认选中），四级全保留
@@ -44,8 +45,7 @@ export default function AddPage() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    fetch("/api/rules")
-      .then((r) => r.json())
+    listRules()
       .then(setRules)
       .catch(() => setLoadError("规则加载失败，请刷新重试"));
   }, []);
@@ -132,27 +132,24 @@ export default function AddPage() {
       return;
     }
     setSubmitting(true);
-    const res = await fetch("/api/activities", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ruleId: selectedRule.rule_id,
-        quantity: selectedRule.unit ? Number(quantity) : undefined,
+    try {
+      const created = await addActivity({
+        rule: selectedRule,
+        quantity: selectedRule.unit ? Number(quantity) || 0 : 1,
+        points: previewPoints ?? selectedRule.points,
         title,
         evidencePath,
         remark,
-      }),
-    });
-    const data = await res.json();
-    setSubmitting(false);
-    if (res.ok) {
-      setMessage(`✅ 已保存（记录 #${data.activity_id}），${data.points} 分`);
+      });
+      setMessage(`✅ 已保存（记录 #${created.activity_id}），${created.points} 分`);
       setTitle("");
       setEvidencePath("");
       setRemark("");
       // 联动选择保留不动：连续录同类活动（比如一堆"活动参与者"）时不用重新选
-    } else {
-      setMessage(`❌ ${data.error ?? "保存失败"}`);
+    } catch (err) {
+      setMessage(`❌ ${err instanceof Error ? err.message : "保存失败"}`);
+    } finally {
+      setSubmitting(false);
     }
   }
 

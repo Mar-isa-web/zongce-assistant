@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { getBase, saveBase } from "@/lib/data";
 
 // 每个育的分数来源说明 + 折算公式（数据来自《实施办法》第五~九条）
 // peer/deduction = 该育是否存在互评分/扣分（不存在的格子像纸质表一样画斜线）
@@ -81,9 +82,10 @@ export default function BasePage() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    fetch("/api/base-scores")
-      .then((r) => r.json())
-      .then((rows: { dimension: string; base_score: number; peer_score: number; deduction: number }[]) => {
+    let alive = true;
+    getBase()
+      .then((rows) => {
+        if (!alive) return;
         const next: Record<string, RowState> = {};
         for (const row of ROWS) {
           const found = rows.find((r) => r.dimension === row.dimension);
@@ -97,7 +99,10 @@ export default function BasePage() {
         }
         setState(next);
       })
-      .catch(() => setLoadError("加载失败，请刷新重试"));
+      .catch(() => alive && setLoadError("加载失败，请刷新重试"));
+    return () => {
+      alive = false;
+    };
   }, []);
 
   function setField(dimension: string, field: keyof RowState, value: string) {
@@ -109,21 +114,21 @@ export default function BasePage() {
     if (!state) return;
     setMessage("");
     setSaving(true);
-    const res = await fetch("/api/base-scores", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        rows: ROWS.map(({ dimension }) => ({
+    try {
+      await saveBase(
+        ROWS.map(({ dimension }) => ({
           dimension,
           baseScore: state[dimension].baseScore,
           peerScore: state[dimension].peerScore,
           deduction: state[dimension].deduction,
         })),
-      }),
-    });
-    const data = await res.json();
-    setSaving(false);
-    setMessage(res.ok ? "✅ 已保存" : `❌ ${data.error ?? "保存失败"}`);
+      );
+      setMessage("✅ 已保存");
+    } catch (err) {
+      setMessage(`❌ ${err instanceof Error ? err.message : "保存失败"}`);
+    } finally {
+      setSaving(false);
+    }
   }
 
   const input = "w-full rounded border border-zinc-300 px-2 py-1.5 text-zinc-900 focus:border-teal-500 focus:outline-none";
