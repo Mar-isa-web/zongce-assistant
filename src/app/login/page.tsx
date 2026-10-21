@@ -151,6 +151,19 @@ export default function LoginPage() {
         </button>
         {error && <p className="text-sm text-red-600">{error}</p>}
       </form>
+
+      {/* 免登录入口：不填任何信息也能先算分，数据只存在本机浏览器 */}
+      <div className="mt-6 border-t border-zinc-200 pt-4 text-center">
+        <a
+          href="/score"
+          className="inline-block w-full rounded border border-teal-600 py-2 text-sm font-medium text-teal-700 hover:bg-teal-50"
+        >
+          不注册，直接试算 →
+        </a>
+        <p className="mt-2 text-xs text-zinc-400">
+          录活动、填基础分、看总分，全程不填学号姓名；数据只存在这台设备的浏览器里
+        </p>
+      </div>
     </main>
   );
 }
