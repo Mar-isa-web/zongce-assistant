@@ -10,6 +10,8 @@ const K = {
 
 export type LocalBaseRow = { dimension: string; base_score: number; peer_score: number; deduction: number };
 export type LocalBase = Record<string, { baseScore: number; peerScore: number; deduction: number }>;
+// 本地活动比服务器行多存一个 rule_id：将来导入账号时按规则重新算分，避免信任前端传的分值
+export type LocalActivity = ActivityRow & { rule_id: number };
 
 function safeParse<T>(raw: string | null, fallback: T): T {
   if (!raw) return fallback;
@@ -24,12 +26,12 @@ function isBrowser() {
   return typeof window !== "undefined";
 }
 
-export function readActivities(): ActivityRow[] {
+export function readActivities(): LocalActivity[] {
   if (!isBrowser()) return [];
-  return safeParse<ActivityRow[]>(localStorage.getItem(K.acts), []);
+  return safeParse<LocalActivity[]>(localStorage.getItem(K.acts), []);
 }
 
-function writeActivities(rows: ActivityRow[]) {
+function writeActivities(rows: LocalActivity[]) {
   localStorage.setItem(K.acts, JSON.stringify(rows));
 }
 
@@ -47,10 +49,11 @@ export function addActivity(input: {
   points: number;
   evidencePath: string;
   remark: string;
-}): ActivityRow {
+}): LocalActivity {
   const id = nextId();
-  const row: ActivityRow = {
+  const row: LocalActivity = {
     activity_id: id,
+    rule_id: input.rule.rule_id,
     student_id: "local",
     title: input.title,
     activity_date: new Date().toISOString().slice(0, 10),
@@ -69,7 +72,7 @@ export function addActivity(input: {
   return row;
 }
 
-export function updateActivity(id: number, patch: Partial<ActivityRow>) {
+export function updateActivity(id: number, patch: Partial<LocalActivity>) {
   writeActivities(readActivities().map((r) => (r.activity_id === id ? { ...r, ...patch } : r)));
 }
 
@@ -84,6 +87,25 @@ export function readBase(): LocalBase {
 
 export function writeBase(base: LocalBase) {
   localStorage.setItem(K.base, JSON.stringify(base));
+}
+
+// 有没有值得导入账号的本地数据
+export function hasLocalData(): boolean {
+  if (!isBrowser()) return false;
+  return readActivities().length > 0 || Object.keys(readBase()).length > 0;
+}
+
+// 一次性取出待导入的数据（导入成功后调用 clearAll）
+export function exportForImport() {
+  const acts = readActivities().map((a) => ({
+    ruleId: a.rule_id,
+    title: a.title,
+    quantity: a.quantity,
+    evidencePath: a.evidence_path,
+    remark: a.remark,
+  }));
+  const base = readBase();
+  return { activities: acts, base };
 }
 
 export function clearAll() {

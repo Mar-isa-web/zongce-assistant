@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import LocalImportBanner from "./local-import-banner";
 
 // 这些页面不登录也能用（本地试算，数据只存在浏览器里）
 const PUBLIC_PATHS = ["/", "/score", "/add", "/base"];
@@ -122,6 +123,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           )}
         </div>
       </header>
+      {state === "in" && <LocalImportBanner />}
       {children}
     </div>
   );
