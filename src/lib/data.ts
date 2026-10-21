@@ -74,6 +74,49 @@ export async function addActivity(input: {
 
 export { local };
 
+// 改一条活动（名称/证明材料/备注/状态；分值由规则决定，不在这里改）
+export async function updateActivity(
+  id: number,
+  patch: { title: string; evidencePath: string; remark: string; status: string },
+): Promise<void> {
+  const mode = await getMode();
+  if (mode === "local") {
+    local.updateActivity(id, {
+      title: patch.title,
+      evidence_path: patch.evidencePath,
+      remark: patch.remark,
+      status: patch.status,
+    });
+    return;
+  }
+  const res = await fetch("/api/activities/update", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ activityId: id, ...patch }),
+  });
+  if (!res.ok) {
+    const d = await res.json().catch(() => ({}));
+    throw new Error(d.error ?? "保存失败");
+  }
+}
+
+export async function deleteActivity(id: number): Promise<void> {
+  const mode = await getMode();
+  if (mode === "local") {
+    local.deleteActivity(id);
+    return;
+  }
+  const res = await fetch("/api/activities/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ activityId: id }),
+  });
+  if (!res.ok) {
+    const d = await res.json().catch(() => ({}));
+    throw new Error(d.error ?? "删除失败");
+  }
+}
+
 // 基础分：两种模式都返回同样的行结构（蛇形字段），页面无需分辨
 export type BaseRowOut = { dimension: string; base_score: number; peer_score: number; deduction: number };
 

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { ActivityRow } from "@/lib/types";
+import { deleteActivity, listActivities, updateActivity } from "@/lib/data";
 
 const DIMENSIONS = ["德育", "智育", "体育", "美育", "劳育"];
 const STATUSES = ["待审核", "通过", "不通过"];
@@ -20,10 +21,13 @@ export default function ListPage() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    fetch("/api/activities")
-      .then((r) => r.json())
-      .then(setRows)
-      .catch(() => setError("加载失败，请刷新重试"));
+    let alive = true;
+    listActivities()
+      .then((r) => alive && setRows(r))
+      .catch(() => alive && setError("加载失败，请刷新重试"));
+    return () => {
+      alive = false;
+    };
   }, []);
 
   // 从总分页「看明细」带 ?dim=XX 进入时，直接筛到对应育别
@@ -62,13 +66,8 @@ export default function ListPage() {
   async function saveEdit(activityId: number) {
     if (!draft) return;
     setMessage("");
-    const res = await fetch("/api/activities/update", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ activityId, ...draft }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok) {
+    try {
+      await updateActivity(activityId, draft);
       setRows(
         (prev) =>
           prev?.map((r) =>
@@ -79,24 +78,19 @@ export default function ListPage() {
       );
       setEditingId(null);
       setDraft(null);
-    } else {
-      setMessage(`❌ ${data.error ?? "保存失败"}`);
+    } catch (err) {
+      setMessage(`❌ ${err instanceof Error ? err.message : "保存失败"}`);
     }
   }
 
   async function doDelete(activityId: number) {
     setMessage("");
-    const res = await fetch("/api/activities/delete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ activityId }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok) {
+    try {
+      await deleteActivity(activityId);
       setRows((prev) => prev?.filter((r) => r.activity_id !== activityId) ?? prev);
       setConfirmDeleteId(null);
-    } else {
-      setMessage(`❌ ${data.error ?? "删除失败"}`);
+    } catch (err) {
+      setMessage(`❌ ${err instanceof Error ? err.message : "删除失败"}`);
     }
   }
 
