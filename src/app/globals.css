@@ -68,3 +68,55 @@ body {
   }
 }
 
+
+/* ============================================================
+   手机端可点性与字号（P-a）
+   依据实测：390×844 下大部分输入框/下拉框/按钮高度只有 38px 左右，
+   低于 44px 的触控下限；且输入框 14px 会触发 iOS 聚焦自动放大页面。
+   只作用于 <main> 内，避免把页头的「返回/退出登录」撑成大方块。
+   ============================================================ */
+@media (max-width: 767px) {
+  /* 1. 输入类：高度 ≥44px，字号 16px（防止 iOS 自动缩放） */
+  main input:not([type="checkbox"]):not([type="radio"]),
+  main select,
+  main textarea {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+
+  /* 2. 表单提交按钮与胶囊形按钮：触控下限 44px */
+  main form button,
+  main button[type="submit"],
+  main a[class*="rounded"]:not([class*="rounded-full"]),
+  main button[class*="rounded"]:not([class*="rounded-full"]) {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 2b. 独立的文字链接（看明细 / 查看列表 / + 录入活动）也放大到 44px；
+        句子中间的行内链接（如提示语里的「登录 / 注册」）保持原样，避免打乱行文 */
+  main a[class*="hover:underline"]:not(p *),
+  main a[class*="py-2"] {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* 2c. 筛选胶囊（全部/德育/智育…）同样按 44px 触控目标 */
+  main button[class*="rounded-full"] {
+    min-height: 44px;
+  }
+
+  /* 3. 12px 文字在手机上偏小，统一提到 13px */
+  main .text-xs {
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+  }
+
+  /* 4. 表格里的小号文字同样抬一档 */
+  main .table-cards td[data-label]::before {
+    font-size: 0.8125rem;
+  }
+}
