@@ -35,8 +35,6 @@ export default function Home() {
   return (
     <main className="flex flex-col items-center px-4 pb-16 pt-10 sm:pt-20">
       <h1 className="text-center text-4xl font-bold sm:text-6xl">综测小助手</h1>
-      <p className="mt-3 text-sm text-zinc-500 sm:mt-4 sm:text-base">v0.2 · 我的第一个全栈项目</p>
-
       {localMode && (
         <p className="mt-6 w-full max-w-sm rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900">
           不用登录就能用，数据只存在这台设备。<br />
