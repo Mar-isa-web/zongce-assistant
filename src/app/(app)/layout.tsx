@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import LocalImportBanner from "./local-import-banner";
 
 // 这些页面不登录也能用（本地试算，数据只存在浏览器里）
-const PUBLIC_PATHS = ["/", "/score", "/add", "/base", "/list"];
+const PUBLIC_PATHS = ["/", "/score", "/add", "/base", "/list", "/rules"];
 
 // 登录门卫：需要账号的页面（列表/规则/成员/排名/改密）未登录一律跳 /login；
 // 试算页允许免登录进入，走本地 localStorage

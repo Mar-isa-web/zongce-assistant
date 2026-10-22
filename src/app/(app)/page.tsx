@@ -9,16 +9,26 @@ export default function Home() {
   // 三态：确认之前不要猜。之前默认「已登录」，导致免登录用户首屏会闪出
   // 「规则配置」，手快的人点中就被送去登录页
   const [mode, setMode] = useState<"unknown" | "local" | "server">("unknown");
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
     getMode()
-      .then((m) => alive && setMode(m))
+      .then(async (m) => {
+        if (!alive) return;
+        setMode(m);
+        if (m === "server") {
+          const me = await fetch("/api/me").then((r) => (r.ok ? r.json() : null)).catch(() => null);
+          if (alive) setRole(me?.role ?? null);
+        }
+      })
       .catch(() => alive && setMode("local"));
     return () => {
       alive = false;
     };
   }, []);
+
+  const isAdmin = mode === "server" && role === "admin";
 
   const localMode = mode === "local";
 
@@ -59,12 +69,12 @@ export default function Home() {
         >
           基础分
         </a>
-        {mode === "server" && (
+        {mode !== "unknown" && (
           <a
             href="/rules"
             className="rounded border border-zinc-400 px-5 py-3 text-center hover:border-teal-600 hover:text-teal-700 sm:py-2"
           >
-            规则配置
+            {isAdmin ? "规则配置" : "评分细则"}
           </a>
         )}
       </nav>

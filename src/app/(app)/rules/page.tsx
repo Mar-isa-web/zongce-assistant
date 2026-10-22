@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Rule } from "@/lib/types";
+import { getMode, listRules } from "@/lib/data";
 
 const DIMENSIONS = ["全部", "德育", "智育", "体育", "美育", "劳育"];
 
@@ -17,12 +18,23 @@ export default function RulesPage() {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  // 只有管理员能改：其他人（含免登录）看只读版，界面里连编辑入口都不出现
+  const [canEdit, setCanEdit] = useState(false);
 
   useEffect(() => {
-    fetch("/api/rules")
-      .then((r) => r.json())
-      .then(setRules)
-      .catch(() => setLoadError("规则加载失败，请刷新重试"));
+    let alive = true;
+    listRules()
+      .then((r) => alive && setRules(r))
+      .catch(() => alive && setLoadError("规则加载失败，请刷新重试"));
+    Promise.all([getMode(), fetch("/api/me").then((r) => (r.ok ? r.json() : null)).catch(() => null)])
+      .then(([mode, me]) => {
+        if (!alive) return;
+        setCanEdit(mode === "server" && me?.role === "admin");
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
   }, []);
 
   const visible = useMemo(() => {
@@ -81,9 +93,11 @@ export default function RulesPage() {
 
   return (
     <main className="mx-auto max-w-5xl p-4 sm:p-8">
-      <h1 className="text-2xl font-bold sm:text-3xl">规则配置</h1>
+      <h1 className="text-2xl font-bold sm:text-3xl">{canEdit ? "规则配置" : "评分细则"}</h1>
       <p className="mt-1 text-sm text-zinc-500 sm:text-base">
-        学校改细则时在这里改分值；"常见例子"是录入页搜索用的关键词。改完点保存立即生效。
+        {canEdit
+          ? "学校改细则时在这里改分值；「常见例子」是录入页搜索用的关键词。改完点保存立即生效。"
+          : "学院评分细则（只读）。录入活动时系统按这里的分值和「常见例子」匹配；如需修改请联系管理员。"}
       </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -115,7 +129,7 @@ export default function RulesPage() {
             <th className="py-2 pr-3 w-20">分值</th>
             <th className="py-2 pr-3">常见例子（搜索用）</th>
             <th className="py-2 pr-3">备注</th>
-            <th className="py-2 w-24">操作</th>
+            {canEdit && <th className="py-2 w-24">操作</th>}
           </tr>
         </thead>
         <tbody>
@@ -152,9 +166,11 @@ export default function RulesPage() {
                 <td data-label="分值" className="py-2 pr-3 font-medium">{r.points}</td>
                 <td data-label="例子" className="py-2 pr-3 text-zinc-500">{r.aliases || "—"}</td>
                 <td data-label="备注" className="py-2 pr-3 text-zinc-500">{r.note || "—"}</td>
-                <td data-label="操作" className="py-2">
-                  <button type="button" onClick={() => startEdit(r)} className="text-teal-700 hover:underline">编辑</button>
-                </td>
+                {canEdit && (
+                  <td data-label="操作" className="py-2">
+                    <button type="button" onClick={() => startEdit(r)} className="text-teal-700 hover:underline">编辑</button>
+                  </td>
+                )}
               </tr>
             ),
           )}
