@@ -63,6 +63,8 @@ export default function ScorePage() {
   if (!data) return <main className="p-8 text-zinc-500">计算中…</main>;
 
   const { current } = data;
+  // 有没有任何数据：一项基础分/互评/加分都没录过，就给他一句怎么开始
+  const hasData = current.dims.some((d) => d.baseScore > 0 || d.peerScore > 0 || d.bonus > 0);
 
   return (
     <main className="mx-auto max-w-4xl p-4 sm:p-8">
@@ -81,6 +83,28 @@ export default function ScorePage() {
         <p className="mt-0.5 text-sm text-zinc-500">
           专业名次：<strong className="text-teal-700">第 {current.majorRank.rank} 名</strong>
           <span className="text-zinc-400"> / {current.majorRank.college}·{current.majorRank.major} 共 {current.majorRank.total} 人</span>
+        </p>
+      )}
+
+      {/* 主操作放在最上面：分数页原来把「录入活动/改基础分」放在两屏之后，同学根本没看到 */}
+      <div className="mt-4 flex gap-2 text-sm sm:mt-5">
+        <Link
+          href="/add"
+          className="flex-1 rounded bg-teal-600 px-4 py-2.5 text-center font-medium text-white hover:bg-teal-700"
+        >
+          + 录入活动
+        </Link>
+        <Link
+          href="/base"
+          className="flex-1 rounded border border-teal-600 px-4 py-2.5 text-center text-teal-700 hover:bg-teal-50"
+        >
+          改基础分
+        </Link>
+      </div>
+
+      {!hasData && (
+        <p className="mt-3 rounded border border-dashed border-zinc-300 bg-zinc-50 px-3 py-3 text-sm leading-relaxed text-zinc-600">
+          还没有任何数据。先点「改基础分」填一下（不知道就留 0），再「+ 录入活动」录一条，这里就会出分。
         </p>
       )}
 
@@ -218,8 +242,7 @@ export default function ScorePage() {
             <a href="/api/export/excel" className="rounded border border-teal-600 px-4 py-2 text-center text-teal-700 hover:bg-teal-50">导出 Excel（核对数据用）</a>
           </>
         )}
-        <Link href="/add" className="px-2 py-2 text-center text-teal-700 hover:underline">+ 录入活动</Link>
-        <Link href="/base" className="px-2 py-2 text-center text-teal-700 hover:underline">改基础分</Link>
+
       </div>
       {showExport && (
         <ExportDialog dims={current.dims} total={current.total} onClose={() => setShowExport(false)} />
