@@ -155,7 +155,7 @@ export default function BasePage() {
                 onClick={() => setOpenInfo(openInfo === dimension ? null : dimension)}
                 className="shrink-0 text-xs text-teal-700 hover:underline"
               >
-                {openInfo === dimension ? "收起说明" : "怎么算的 ▾"}
+                {openInfo === dimension ? "收起公式 ▴" : "计算公式 ▾"}
               </button>
             </div>
             {openInfo === dimension && (

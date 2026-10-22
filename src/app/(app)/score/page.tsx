@@ -125,7 +125,7 @@ export default function ScorePage() {
                 onClick={() => setOpenFormula(openFormula === d.dimension ? null : d.dimension)}
                 className="text-xs text-teal-700 hover:underline"
               >
-                {openFormula === d.dimension ? "收起公式 ▴" : "怎么算的 ▾"}
+                {openFormula === d.dimension ? "收起公式 ▴" : "计算公式 ▾"}
               </button>
               {openFormula === d.dimension && (
                 <div className="mt-1 rounded bg-zinc-50 px-2 py-1.5 text-xs leading-relaxed text-zinc-500">
