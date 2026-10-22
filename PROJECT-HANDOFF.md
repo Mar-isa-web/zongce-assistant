@@ -1,7 +1,7 @@
 # 项目交接说明（PROJECT-HANDOFF）
 
 > 给任何接手本项目的工具或人：先读完这份文档再动代码。
-> 最后更新：2026-10-20（MVP 切片 0-6 + v2 第 1-5 项已完成并上线，线上版本见文末）
+> 最后更新：2026-10-22（新增免登录双轨模式；MVP 切片 0-6 + v2 + v3 已完成上线）
 
 ## 一、这是什么
 
@@ -23,7 +23,13 @@
    `scripts/push.sh` 会先列出本机在监听的候选端口，再依次用真实 `git push` 去试（幂等，失败不影响远程），
    第一个成功的收工，全失败才回退直连。**不要手写 `-c http.proxy=...`**，也不要靠 curl 探 HTTPS——
    Clash 会做中间人证书、节点异常时返回 502，会把可用端口误判成不可用；
-5. **中文经 GitBash 传 curl 会 GBK 乱码**：测 API 用 node fetch 或 `--data-binary @file`；
+5. **`gh-proxy.com` 会限流**（返回 429）：拉取失败改用 `https://ghfast.top/https://github.com/...`；
+   两个都挂时用「bundle 部署」——本地 `git bundle create /tmp/x.bundle main`、`scp` 上去、
+   服务器 `git fetch /tmp/x.bundle main && git merge --ff-only FETCH_HEAD`，之后 npm ci/build/restart 照走；
+6. **改 `globals.css` 后必须重启 dev server**：HMR 不会重编全局样式，清 `.next` 也不够，
+   要把它整个 mv 走再起；否则测出来一直是旧样式（曾因此误判「CSS 没生效」）；
+7. **沙箱禁止批量删除**：`rm -rf .next`（数百文件）会被拦，用 `mv .next .next-old-xxx` 代替；
+8. **中文经 GitBash 传 curl 会 GBK 乱码**：测 API 用 node fetch 或 `--data-binary @file`；
 6. **测试前先查当前记录 id**：导入/重建后 id 会重排。
 
 ## 四、部署速查（深圳实例 47.112.8.28）
@@ -43,7 +49,41 @@ cp db/zongce.db db/backup-$(date +%F).db
 - 当前线上版本见 `git log -1`（截至 2026-10-20 为 `ec70954`；v2 全部功能已上线）
 - 部署前务必 `cp db/zongce.db db/backup-$(date +%F-%H%M).db`，服务器上已按此保留多份快照
 
-## 五、v2 迭代状态（2026-10-19 完成）
+## 五、架构：双轨数据层（2026-10-21 起）
+
+同一套页面，跑两种后端。**判断依据只有一条：`/api/me` 是否 200。**
+
+```
+登录用户  →  /api/*  + SQLite          （原有逻辑，未改）
+免登录    →  localStorage + 前端算分   （新增，数据不出浏览器）
+```
+
+关键文件：
+
+| 文件 | 作用 |
+|---|---|
+| `src/lib/score-core.ts` | **算分公式唯一来源**（纯函数，不碰 db）。DIM_CONFIG / computeDims / computeTotal 都在这里 |
+| `src/lib/scores.ts` | 服务器侧：从库里取数，再调 score-core（对外接口不变） |
+| `src/lib/local-store.ts` | localStorage 增删改查，字段与服务器表同名，便于导入 |
+| `src/lib/data.ts` | **页面只调它**：listRules / listActivities / addActivity / updateActivity / deleteActivity / getBase / saveBase / getScore，内部按模式分发 |
+| `public/rules.json` | 224 条细则的离线副本（45KB），免登录模式下读它 |
+
+**页面权限矩阵**（`src/app/(app)/layout.tsx` 的 PUBLIC_PATHS）
+
+| 路径 | 未登录 | 学生 | 管理员 |
+|---|---|---|---|
+| `/` `/score` `/add` `/base` `/list` | ✅ 本地模式 | ✅ | ✅ |
+| `/rules` | ✅ 只读（评分细则） | ✅ 只读 | ✅ 可编辑（规则配置） |
+| `/members` `/ranking` `/password` | ❌ 跳登录 | 部分 | ✅ |
+
+**三个必须守住的不变量**
+
+1. 算分公式只有一份（score-core），前端本地与服务器结果必须逐位相同；
+2. 免登录的一切操作不写服务器库（只有显式「导入账号」才写，且分值由服务端按 rule_id 重算）；
+3. 客户端判断身份/模式一律用三态（unknown / local / server），**未知时按最保守渲染**——
+   否则会出现「首屏闪出只有登录才该看到的入口」。
+
+## 六、v2 迭代状态（2026-10-19 完成）
 
 已完成并上线：
 
@@ -56,14 +96,27 @@ cp db/zongce.db db/backup-$(date +%F).db
 
 明确**不做**：三级审核流、批量导入历史活动、数量型封顶规则（用户判断暂无必要）。
 
-## 六、已知限制（接手前请知悉）
+**v3 免登录改造（2026-10-21 ~ 10-22）**
+
+- 免登录本地试算：数据存 localStorage，页面与登录态共用同一套 UI
+- 前端导出 Word / Excel（浏览器内生成，重依赖按需加载，Word 输出加 DEFLATE 压缩）
+- 试算数据一键导入账号；评分细则全员可读、仅管理员可改
+- 手机端可点性：触控 ≥44px、输入框 16px、字号 ≥13px
+- 修过的两个「跳登录」问题：`/list` 未放行、首页首屏闪出「规则配置」
+
+## 七、已知限制（接手前请知悉）
 
 - 手机号唯一性只在接口层校验，**未建数据库唯一索引**；加索引需单独迁移（线上有存量数据）；
 - 细则里"学年累计不超过 X 分"这类数量型封顶**尚未执行**，仅作为备注展示——目前 224 条里有 5 条带此类上限；
 - 无短信 / 邮件验证码，忘记密码只能由管理员重置；
-- 前端有两处历史 lint 报错（`rules` 页直引号、`list` 页 effect 内 setState），不影响运行。
+- 前端有两处历史 lint 报错（`rules` 页直引号、`list` 页 effect 内 setState），不影响运行；
+- **免登录模式的数据只在当前浏览器**（换设备/清缓存即丢），注册后可一键导入账号；
+- 免登录时没有专业名次（不掌握全班数据）；导出用的姓名学号在导出前临时填，不写库；
+- 手机端总分页约 2 屏，明细未合并成两行——评估过，收益 0.35 屏但存在数字歧义风险，**决定暂不做**；
+- 新增免登录可达页面时，务必同时检查该页里所有链接指向的路径是否也在 PUBLIC_PATHS，
+  否则会出现「点一下就跳登录页」（`/list`、`/rules` 都踩过）。
 
-## 七、验收文化（接手者请遵守）
+## 八、验收文化（接手者请遵守）
 
 - 小切片开发，一个切片一个提交，提交信息用中文描述功能；
 - **双通道验收**：数值核对（API 输出 vs 手算）+ 界面肉眼/截图验收；
