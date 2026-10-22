@@ -50,3 +50,4 @@ db/import-form.mjs
 # 模板渲染/测试的临时产物（下划线开头），不入仓库
 templates/_*
 tmp-*.mjs
+db/backups/
