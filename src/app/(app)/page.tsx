@@ -6,17 +6,21 @@ import { getMode } from "@/lib/data";
 // 首页：登录用户看到全部入口；免登录（本地试算）用户看不到「规则配置」，
 // 那是管理员维护细则用的，点进去只会被弹回登录页
 export default function Home() {
-  const [localMode, setLocalMode] = useState(false);
+  // 三态：确认之前不要猜。之前默认「已登录」，导致免登录用户首屏会闪出
+  // 「规则配置」，手快的人点中就被送去登录页
+  const [mode, setMode] = useState<"unknown" | "local" | "server">("unknown");
 
   useEffect(() => {
     let alive = true;
     getMode()
-      .then((m) => alive && setLocalMode(m === "local"))
-      .catch(() => {});
+      .then((m) => alive && setMode(m))
+      .catch(() => alive && setMode("local"));
     return () => {
       alive = false;
     };
   }, []);
+
+  const localMode = mode === "local";
 
   return (
     <main className="flex flex-col items-center px-4 pb-16 pt-10 sm:pt-20">
@@ -55,7 +59,7 @@ export default function Home() {
         >
           基础分
         </a>
-        {!localMode && (
+        {mode === "server" && (
           <a
             href="/rules"
             className="rounded border border-zinc-400 px-5 py-3 text-center hover:border-teal-600 hover:text-teal-700 sm:py-2"
