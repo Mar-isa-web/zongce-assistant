@@ -44,6 +44,8 @@ export default function ScorePage() {
   const [error, setError] = useState("");
   const [localMode, setLocalMode] = useState(false);
   const [showExport, setShowExport] = useState(false);
+  // 公式默认收起：每张卡那一行占两行，5 个育下来接近半屏
+  const [openFormula, setOpenFormula] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -118,7 +120,18 @@ export default function ScorePage() {
                 <span className="font-medium text-zinc-900">{d.dimension}</span>
                 <span className="text-lg font-bold text-teal-700">{d.converted}</span>
               </div>
-              <div className="mt-0.5 text-xs text-zinc-400">{f.formula}（百分制，满分 100）</div>
+              <button
+                type="button"
+                onClick={() => setOpenFormula(openFormula === d.dimension ? null : d.dimension)}
+                className="text-xs text-teal-700 hover:underline"
+              >
+                {openFormula === d.dimension ? "收起公式 ▴" : "怎么算的 ▾"}
+              </button>
+              {openFormula === d.dimension && (
+                <div className="mt-1 rounded bg-zinc-50 px-2 py-1.5 text-xs leading-relaxed text-zinc-500">
+                  {f.formula}（百分制，满分 100）
+                </div>
+              )}
               <dl className="mt-2 space-y-0.5 text-sm">
                 <div className="flex justify-between">
                   <dt className="text-zinc-500">基础分</dt>

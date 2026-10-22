@@ -80,6 +80,8 @@ export default function BasePage() {
   const [loadError, setLoadError] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  // 说明默认收起：手机上每张卡光公式+来源就占三行，5 个育要滑很久
+  const [openInfo, setOpenInfo] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -143,15 +145,26 @@ export default function BasePage() {
         学年 2025-2026 · 这些分不是活动加分，来源见每行说明；加分在<a href="/add" className="text-teal-700 hover:underline">录入活动</a>里
       </p>
 
-      <form onSubmit={save} className="mt-6 space-y-4">
+      <form onSubmit={save} className="mt-5 space-y-3">
         {ROWS.map(({ dimension, baseHint, formula, peer, deduction }) => (
-          <div key={dimension} className="rounded border border-zinc-200 p-4">
-            <div className="flex items-baseline justify-between gap-2">
+          <div key={dimension} className="rounded border border-zinc-200 p-3">
+            <div className="flex items-center justify-between gap-2">
               <span className="shrink-0 font-medium text-zinc-800">{dimension}</span>
-              <span className="text-right text-xs text-zinc-500">{formula}</span>
+              <button
+                type="button"
+                onClick={() => setOpenInfo(openInfo === dimension ? null : dimension)}
+                className="shrink-0 text-xs text-teal-700 hover:underline"
+              >
+                {openInfo === dimension ? "收起说明" : "怎么算的 ▾"}
+              </button>
             </div>
-            <p className="mt-1 text-xs text-zinc-500">来源：{baseHint}</p>
-            <div className="mt-2 grid grid-cols-3 gap-3">
+            {openInfo === dimension && (
+              <div className="mt-1 rounded bg-zinc-50 px-2 py-1.5 text-xs leading-relaxed text-zinc-600">
+                <div>{formula}</div>
+                <div className="mt-1 text-zinc-500">来源：{baseHint}</div>
+              </div>
+            )}
+            <div className="mt-2 grid grid-cols-3 gap-2">
               <label className="block">
                 <span className="mb-1 block text-xs text-zinc-600">基础分</span>
                 <input
