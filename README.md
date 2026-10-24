@@ -1,5 +1,7 @@
 # 综测小助手
 
+[![CI](https://github.com/Mar-isa-web/zongce-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/Mar-isa-web/zongce-assistant/actions/workflows/ci.yml)
+
 帮同学自动核算综合测评（综测）分数的 Web 应用：录入活动和证书 → 按学院评分细则自动算分 → 一键生成综测表。
 
 我的第一个从 0 到上线的全栈项目，用于练习 AI 协作开发（vibe coding）的完整流程：需求卡片 → 小步切片 → 逐项验收。

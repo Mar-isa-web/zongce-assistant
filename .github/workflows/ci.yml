@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      # better-sqlite3 必须锁 v12.4.1（v13 在 Ubuntu 22.04 + 5.15 内核
+      # 首次 SQLite 操作 100% SIGSEGV，见 DEPLOY.md）——npm ci 按 lock 安装
+      - name: 安装依赖（按 package-lock，含 better-sqlite3@12.4.1）
+        run: npm ci
+      - name: 生产构建
+        run: npm run build
