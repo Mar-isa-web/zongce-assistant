@@ -113,4 +113,4 @@ npm run dev
 
 ## 许可
 
-[MIT](LICENSE) © 2026 江圳宇
+[MIT](LICENSE) © 2026 Mar-isa-web
