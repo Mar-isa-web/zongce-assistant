@@ -45,7 +45,7 @@ cp db/zongce.db db/backup-$(date +%F).db
 ```
 
 - systemd 服务名 `zongce`，`WorkingDirectory` 必须是项目根（db 和 templates 是 cwd 相对路径）
-- 管理员账号 251543528（admin），线上库为全新空库+224 规则+演示账号 251500000/张三
+- 管理员账号（已脱敏，角色 admin），线上库为全新空库+224 规则+演示账号 251500000/张三
 - 当前线上版本见 `git log -1`（截至 2026-10-20 为 `ec70954`；v2 全部功能已上线）
 - 部署前务必 `cp db/zongce.db db/backup-$(date +%F-%H%M).db`，服务器上已按此保留多份快照
 
