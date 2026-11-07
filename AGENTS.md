@@ -12,7 +12,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## 项目背景（给 AI 协作者）
 
-这是江圳宇（Mar-isa-web）的第一个全栈项目「综测小助手」：帮同学自动核算综合测评分数的 Web 应用，真实用户是广东金融学院的同学们；同时也是作者练习 AI 协作开发的作品集项目。
+这是Mar-isa-web（Mar-isa-web）的第一个全栈项目「综测小助手」：帮同学自动核算综合测评分数的 Web 应用，真实用户是广东金融学院的同学们；同时也是作者练习 AI 协作开发的作品集项目。
 
 - **路线图与进度以 README.md 的「开发路线图（MVP 切片）」为准**，完成一项勾一项，不要凭记忆猜进度。
 - 技术栈：Next.js（App Router）+ TypeScript + Tailwind CSS；数据库计划用 SQLite。
